@@ -1,0 +1,641 @@
+/* index.css - Diseño Institucional Centrado y Compacto "A Todo Ritmo" */
+@import url('https://googleapis.com');
+
+body { 
+    font-family: 'Mukta', sans-serif; 
+    background-color: #FFFAE6; 
+    color: #181818; 
+    margin: 0; 
+    padding: 0; 
+    antialiased: true; 
+    scroll-behavior: smooth; 
+}
+.banner-anuncio { 
+    background-color: #24AB58; 
+    color: #FFFAE6; 
+    text-align: center; 
+    padding: 8px 16px; 
+    font-size: 13px; 
+    font-weight: 600; 
+    letter-spacing: 0.5px; 
+}
+
+/* ==========================================================================
+   RESET DE ESTILOS (Pegalo al inicio de tu CSS para evitar espacios raros)
+   ========================================================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+}
+
+/* ==========================================================================
+   ESTILOS GENERALES DEL HEADER NUEVO
+   ========================================================================== */
+:root {
+    --brand-green: #1db954;
+    --brand-yellow: #f4c430;
+    --dark-bg: #121212;
+}
+
+/* 1. Barra Informativa Superior Verde */
+.top-bar {
+    background-color: #0f683a; /* Verde oscuro orgánico */
+    color: #ffffff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 30px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+/* 2. Contenedor Principal de la Barra de Navegación */
+.navbar {
+    background-color: var(--dark-bg);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 30px;
+    border-bottom: 5px solid var(--brand-green); /* Línea verde característica */
+}
+
+/* 3. Bloque de Identidad (Logo + Texto) */
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.brand .logo-icon {
+    background-color: var(--brand-yellow);
+    color: var(--dark-bg);
+    font-size: 1.4rem;
+    padding: 8px 10px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.brand-text h1 {
+    color: var(--brand-yellow);
+    font-size: 1.4rem;
+    font-weight: 800;
+    line-height: 1.1;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.brand-text p {
+    color: #a7a7a7;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-top: 2px;
+}
+
+/* 4. Menú de Enlaces Centrales */
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 20px;
+    align-items: center;
+}
+
+.nav-links a {
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: color 0.2s ease;
+}
+
+
+
+/* 5. Botones de Acción (Derecha) */
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Botón Lógica SQL */
+.btn-sql {
+    background-color: #282828;
+    color: var(--brand-yellow);
+    border: 1px solid #404040;
+    padding: 8px 16px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background-color 0.2s;
+}
+
+.btn-sql:hover {
+    background-color: #3e3e3e;
+}
+
+/* Botón Inscribirme */
+.btn-enroll {
+    background-color: var(--brand-green);
+    color: #ffffff;
+    border: none;
+    padding: 9px 22px;
+    border-radius: 25px;
+    font-weight: 700;
+    text-decoration: none;
+    font-size: 0.85rem;
+    box-shadow: 0 4px 12px rgba(29, 185, 84, 0.2);
+    transition: transform 0.1s, background-color 0.2s;
+}
+
+.btn-enroll:hover {
+    background-color: #1ed760;
+    transform: scale(1.02);
+}
+
+/* 6. Adaptación para pantallas chicas (Responsive básico) */
+@media (max-width: 992px) {
+    .top-bar {
+        flex-direction: column;
+        gap: 4px;
+        text-align: center;
+    }
+    .navbar {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px;
+    }
+    .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+    }
+}
+
+.logo h1 { 
+    font-family: 'Carter One', cursive; 
+    color: #F3D84F; 
+    margin: 0; 
+    font-size: 26px; 
+}
+
+/* Menú Estilo Pestañas de Navegación */
+nav a { 
+    color: #FFFAE6; 
+    text-decoration: none; 
+    font-weight: 600; 
+    font-size: 14px; 
+    margin-left: 8px; 
+    padding: 8px 14px; 
+    border-radius: 10px; 
+    display: inline-block;
+    transition: all 0.2s; 
+}
+nav a:hover { 
+    color: #F3D84F; 
+    background-color: rgba(36, 171, 88, 0.15); 
+}
+
+/* Contenedor Estricto Ajustado a 1200px Máximos */
+.container { 
+    max-width: 1200px; 
+    margin: 0 auto; 
+    padding: 40px 20px; 
+    box-sizing: border-box; 
+}
+
+/* TRAMAS DE PUNTOS DEL MOODBOARD ORIGINAL */
+.pattern-dots-dark { background-image: radial-gradient(rgba(24, 24, 24, 0.15) 1.5px, transparent 1.5px); background-size: 16px 16px; }
+.pattern-dots-yellow { background-image: radial-gradient(rgba(243, 216, 79, 0.35) 1.5px, transparent 1.5px); background-size: 20px 20px; }
+
+/* Hero Banner Inicial Acotado a 1160px */
+.hero { 
+    background-color: #181818; 
+    color: #FFFAE6; 
+    border: 4px solid #F3D84F; 
+    border-radius: 32px; 
+    padding: 65px 40px; 
+    text-align: center; 
+    margin: 0 auto 50px auto; 
+    max-width: 1160px; 
+    box-shadow: 0 12px 30px rgba(0,0,0,0.12); 
+    box-sizing: border-box; 
+}
+.hero h2 { 
+    font-family: 'Carter One', cursive; 
+    color: #FFFAE6; 
+    font-size: 44px; 
+    margin-top: 0;
+    margin-bottom: 15px; 
+    line-height: 1.2; 
+}
+.hero p { 
+    max-width: 800px; 
+    margin: 0 auto 35px auto; 
+    font-size: 17px; 
+    color: #dddddd; 
+    line-height: 1.6; 
+}
+
+.flex-center { display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap; }
+.btn { border: 2px solid #181818; padding: 12px 24px; border-radius: 12px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block; font-size: 14px; transition: transform 0.2s; box-sizing: border-box; }
+.btn:hover { transform: translateY(-2px); }
+.btn-y { background-color: #F3D84F; color: #181818; font-family: 'Carter One', cursive; font-size: 15px; box-shadow: 3px 3px 0px #24AB58; }
+.btn-outline { background: transparent; border: 2px solid #24AB58; color: #FFFAE6; font-family: 'Carter One', cursive; }
+.btn-outline:hover { background-color: #24AB58; }
+
+h2.seccion-titulo { font-family: 'Carter One', cursive; text-align: center; font-size: 32px; color: #181818; margin: 0; }
+.sub-titulo { text-align: center; color: #444; margin-bottom: 45px; font-size: 16px; }
+
+/* Fila Horizontal Centrada para las Tarjetas */
+.grid-4-horizontal { 
+    display: flex; 
+    gap: 20px; 
+    justify-content: center; 
+    margin-bottom: 60px; 
+    flex-wrap: wrap; 
+}
+
+/* Tarjetas Estilo Cómic con Bordes Robustos de 265px */
+.card-comic, .taller-mini-card { 
+    background: #FFFDF5; 
+    border: 2px solid #181818; 
+    border-radius: 24px; 
+    padding: 24px; 
+    box-shadow: 4px 4px 0px #181818; 
+    box-sizing: border-box; 
+    width: 265px; 
+    max-width: 265px; 
+    min-height: 380px; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: space-between; 
+}
+.card-comic h3 { font-family: 'Carter One', cursive; margin: 0 0 10px 0; font-size: 18px; color: #181818; }
+.card-comic p { margin: 0; font-size: 13.5px; color: #444; line-height: 1.45; }
+
+.icon-box { width: 44px; height: 44px; background-color: #24AB58; color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 14px; font-weight: bold; }
+.icon-box.yellow { background-color: #F3D84F; color: #181818; }
+
+/* Contenedores Estrictos para las Fotos de los Talleres */
+.taller-img-container { width: 100%; height: 130px; border-radius: 14px; overflow: hidden; border: 2px solid #181818; margin-bottom: 10px; }
+.taller-img-container img { width: 100%; height: 100%; object-fit: cover; }
+.taller-badge { background: #F3D84F; color: #181818; padding: 4px 10px; border-radius: 20px; font-family: 'Carter One', cursive; font-size: 11px; display: inline-block; margin-bottom: 8px; width: fit-content; border: 1px solid #181818; }
+.taller-mini-body { flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-start; }
+.taller-mini-body h4 { font-family: 'Carter One', cursive; font-size: 15px; margin: 0 0 8px 0; line-height: 1.3; color: #181818; }
+.taller-mini-body p { margin: 0; font-size: 12.5px; color: #555; line-height: 1.45; }
+.taller-mini-footer { border-top: 1px solid #eee; padding: 12px 0 0 0; display: flex; justify-content: space-between; align-items: center; background: #FFFDF5; font-size: 13px; margin-top: 10px; }
+
+/* Banner del Evento de Primavera Centrado */
+.evento-banner-destacado { 
+    background: linear-gradient(135deg, #181818, #222); 
+    border: 4px solid #24AB58; 
+    border-radius: 32px; 
+    padding: 45px; 
+    color: #FFFAE6; 
+    margin: 0 auto 60px auto; 
+    max-width: 1160px; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    gap: 35px; 
+    box-sizing: border-box; 
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15); 
+}
+.evento-info-side { flex: 1; }
+.evento-info-side h3 { font-family: 'Carter One', cursive; font-size: 30px; color: #F3D84F; margin: 0 0 12px 0; text-align: left; }
+.evento-ticket-side { background: #181818; border: 2px solid #444; border-radius: 24px; padding: 25px; text-align: center; min-width: 240px; box-sizing: border-box; box-shadow: 3px 3px 0px #24AB58; }
+.event-chips { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+.chip { background: #2b2b2b; padding: 5px 10px; border-radius: 8px; font-size: 12px; color: #ccc; font-weight: 600; border: 1px solid #444; }
+
+/* Reseñas Horizontales Grandes */
+.flex-resenas { display: flex; gap: 20px; justify-content: center; margin-bottom: 65px; flex-wrap: wrap; }
+.card-resena { background: #FFFDF5; border: 2px solid #181818; border-radius: 24px; padding: 25px; box-shadow: 4px 4px 0px #181818; width: 360px; max-width: 360px; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; }
+.stars { color: #F3D84F; font-size: 18px; margin-bottom: 10px; letter-spacing: 1px; }
+
+/* Caja de Invitación de Matrícula Robusta */
+.cta-final-box { 
+    background-color: #F3D84F; 
+    border: 4px solid #181818; 
+    border-radius: 32px; 
+    padding: 60px 45px; 
+    text-align: center; 
+    box-shadow: 6px 6px 0px #181818; 
+    box-sizing: border-box; 
+    max-width: 1000px; 
+    margin: 40px auto 0 auto; 
+}
+.cta-final-box h2 { font-family: 'Carter One', cursive; font-size: 34px !important; margin: 0 0 15px 0 !important; color: #181818; }
+.cta-final-box p { font-size: 16px !important; max-width: 700px; margin: 0 auto 30px auto !important; color: #181818; line-height: 1.5; }
+
+footer { background-color: #181818; color: #FFFAE6; padding: 45px 20px; text-align: center; border-top: 4px solid #24AB58; margin-top: 70px; font-size: 14px; }
+
+/* ==========================================================================
+   ESTILOS BLINDADOS PARA EL HEADER NUEVO
+   ========================================================================== */
+#header-escuela {
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    display: block !important;
+    font-family: 'Segoe UI', Helvetica, Arial, sans-serif !important;
+}
+
+#header-escuela * {
+    box-sizing: border-box !important;
+}
+
+#header-escuela .top-bar {
+    background-color: #1db954 !important; /* Verde brillante e institucional */
+    color: #ffffff !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 10px 30px !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.5px !important;
+}
+
+
+#header-escuela .navbar {
+    background-color: #121212 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 12px 30px !important;
+    border-bottom: 5px solid #1db954 !important;
+}
+
+/* 1. Evita que la caja del logo se estire verticalmente */
+#header-escuela .brand {
+    display: flex !important;
+    align-items: center !important; /* Alinea al centro en vez de estirar */
+    align-self: center !important;
+    height: auto !important;
+}
+
+/* 2. Corrige la alineación interna del cuadro amarillo para centrar la nota */
+#header-escuela .logo-icon {
+    height: 46px !important;
+    min-height: 46px !important;
+    max-height: 46px !important;
+    width: 44px !important;
+    display: flex !important;
+    align-items: center !important;     /* Centra verticalmente la nota 🎵 */
+    justify-content: center !important; /* Centra horizontalmente la nota 🎵 */
+    line-height: normal !important;
+}
+
+
+
+#header-escuela .brand-text h1 {
+    font-family: 'Carter One', cursive !important; /* Tipografía oficial de la escuela */
+    color: #f4c430 !important;
+    font-size: 1.4rem !important;
+    font-weight: normal !important; /* Carter One ya es gruesa por defecto */
+    text-transform: uppercase !important;
+    margin: 0 !important;
+    letter-spacing: 0.5px !important;
+}
+
+#header-escuela .brand-text p {
+    font-family: 'Segoe UI', Helvetica, Arial, sans-serif !important; /* El subtítulo lo dejamos limpio para que contraste bien */
+    color: #a7a7a7 !important;
+    font-size: 0.65rem !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
+    letter-spacing: 1px !important;
+}
+
+
+
+
+#header-escuela .nav-links {
+    display: flex !important;
+    list-style: none !important;
+    gap: 20px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+#header-escuela .nav-links li {
+    margin: 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+}
+
+#header-escuela .nav-links a {
+    color: #ffffff !important;
+    text-decoration: none !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+}
+
+#header-escuela .nav-links a:hover {
+    color: #f4c430 !important;
+}
+
+#header-escuela .nav-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+}
+
+#header-escuela .btn-sql {
+    background-color: #282828 !important;
+    color: #f4c430 !important;
+    border: 1px solid #404040 !important;
+    padding: 8px 16px !important;
+    border-radius: 4px !important;
+    text-decoration: none !important;
+    font-size: 0.8rem !important;
+}
+
+#header-escuela .btn-enroll {
+    background-color: #1db954 !important;
+    color: #ffffff !important;
+    padding: 9px 22px !important;
+    border-radius: 25px !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+    font-size: 0.85rem !important;
+}
+
+/* Forzar la altura exacta y uniforme del header en todas las páginas */
+#header-escuela, 
+#header-escuela .main-header {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+}
+
+#header-escuela .navbar {
+    height: 70px !important; /* Ajusta este número para darle la altura exacta que querés */
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* Fuerza a que todos los elementos internos del menú usen la tipografía del index */
+#header-escuela, 
+#header-escuela * {
+    font-family: 'Segoe UI', Helvetica, Arial, sans-serif !important;
+}
+
+/* Excepción exclusiva para el título principal que lleva la fuente de la escuela */
+#header-escuela .brand-text h1 {
+    font-family: 'Carter One', cursive !important;
+}
+
+#header-escuela .nav-links a {
+    font-family: 'Segoe UI', Helvetica, Arial, sans-serif !important;
+    line-height: 1.3 !important; /* Estabiliza la escala vertical de la letra */
+}
+
+/* --- CALIBRACIÓN DE CENTRADO VERTICAL ABSOLUTO --- */
+
+/* Forza a la barra negra a alinear todos sus hijos en el centro exacto */
+#header-escuela .navbar {
+    display: flex !important;
+    align-items: center !important;     /* Centrado vertical */
+    justify-content: space-between !important;
+    box-sizing: border-box !important;
+}
+
+/* Sella la altura y alineación del logo, enlaces y botones */
+#header-escuela .brand,
+#header-escuela .nav-links,
+#header-escuela .nav-actions {
+    display: flex !important;
+    align-items: center !important;     /* Clava los elementos al centro vertical */
+    align-self: center !important;      /* Evita saltos por herencia del contenedor */
+    margin: 0 !important;
+}
+
+/* Ajusta los elementos de la lista para que no floten hacia arriba */
+#header-escuela .nav-links li {
+    display: flex !important;
+    align-items: center !important;
+    margin: 0 !important;
+}
+
+/* Calibración milimétrica para centrar los botones con el logo */
+#header-escuela .brand-text h1 {
+    line-height: 1 !important; /* Achica el espacio invisible debajo de las letras */
+    margin: 0 !important;
+}
+
+#header-escuela .brand-text p {
+    line-height: 1 !important;
+    margin-top: 2px !important; /* Empuja el subtítulo levemente para equilibrar */
+}
+
+/* Calibración milimétrica final: balance perfecto de 1px */
+#header-escuela .nav-links a, 
+#header-escuela .btn-sql, 
+#header-escuela .btn-enroll {
+    transform: translateY(1px) !important; /* Empuje milimétrico exacto */
+}
+
+/* Estabilización milimétrica para el texto del logo en todo el sitio */
+#header-escuela .brand-text {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important; /* Centra los textos verticalmente dentro de su caja */
+    height: 46px !important;            /* Clava el alto igual al del cuadrado amarillo */
+}
+
+#header-escuela .brand-text h1 {
+    line-height: 1.1 !important;        /* Clava la escala del título principal */
+    margin: 0 !important;
+}
+
+#header-escuela .brand-text p {
+    line-height: 1 !important;          /* Clava la escala del subtítulo */
+    margin: 0 !important;       /* Separa el subtítulo de forma idéntica en todo el sitio */
+}
+
+/* ==========================================================================
+   ESTILOS BLINDADOS PARA EL FOOTER UNIFICADO
+   ========================================================================== */
+#footer-escuela {
+    background-color: #181818 !important;
+    color: #FFFAE6 !important;
+    padding: 45px 20px !important;
+    border-top: 4px solid #24AB58 !important;
+    margin-top: 80px !important;
+    width: 100% !important;
+    display: block !important;
+    box-sizing: border-box !important;
+}
+
+#footer-escuela * {
+    box-sizing: border-box !important;
+}
+
+#footer-escuela .footer-grid {
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    display: grid !important;
+    grid-template-columns: 1.3fr 1fr 1.1fr 1.2fr !important;
+    gap: 40px !important;
+    padding-bottom: 30px !important;
+}
+
+#footer-escuela .footer-col h4 {
+    font-family: 'Carter One', cursive !important;
+    color: #F3D84F !important;
+    margin-bottom: 15px !important;
+    font-size: 17px !important;
+    font-weight: normal !important;
+}
+
+#footer-escuela .footer-col p {
+    color: #ccc !important;
+    font-size: 13.5px !important;
+    line-height: 1.6 !important;
+    margin-bottom: 10px !important;
+}
+
+#footer-escuela .footer-col ul {
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+#footer-escuela .footer-col ul li {
+    margin-bottom: 8px !important;
+    list-style: none !important;
+}
+
+#footer-escuela .footer-col ul li a {
+    color: #FFF !important;
+    text-decoration: none !important;
+    font-size: 13.5px !important;
+    font-weight: 500 !important;
+}
+
+#footer-escuela .footer-col ul li a:hover {
+    color: #F3D84F !important;
+}
+
+/* Responsivo estricto para que no se rompa en celulares */
+@media (max-width: 992px) {
+    #footer-escuela .footer-grid { grid-template-columns: repeat(2, 1fr) !important; }
+}
+@media (max-width: 650px) {
+    #footer-escuela .footer-grid { grid-template-columns: 1fr !important; }
+}

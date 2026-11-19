@@ -1,74 +1,108 @@
 <?php
-/**
- * Proyecto: Escuela de Música "A Todo Ritmo"
- * Archivo: talleres.php
- * Sección: Talleres Instrumentales y Vocales
- * Requisitos: HTML5 Clásico, PHP Nativo con PDO, Contenedor max-width 1000px, Tarjetas Horizontales Compactas.
- *             Sin formulario de matrícula rápida (el botón redirige a la sección de inscripción).
- */
-
 require_once __DIR__ . '/conexion.php';
 
-// Filtro opcional por instrumento o nivel (si se envía por GET)
+// Filtros relacionales por formulario GET
+$buscar            = isset($_GET['buscar']) ? trim($_GET['buscar']) : '';
 $filtroInstrumento = isset($_GET['instrumento']) ? trim($_GET['instrumento']) : '';
 $filtroNivel       = isset($_GET['nivel']) ? trim($_GET['nivel']) : '';
 
-// Consulta SQL con PDO uniendo las tablas talleres, docentes y sedes
 try {
-    $sql = "SELECT 
-                t.id, 
-                t.nombre, 
-                t.instrumento, 
-                t.docente_id, 
-                t.nivel, 
-                t.edad_minima, 
-                t.dia_semana, 
-                t.horario, 
-                t.vacantes_totales, 
-                t.vacantes_disponibles, 
-                t.arancel_mensual, 
-                t.modalidad, 
-                t.sede_id, 
-                t.descripcion, 
-                t.requisitos, 
-                t.instrumentos_prestamo_disponibles, 
-                t.destacado, 
-                t.imagen_url,
-                CONCAT(d.nombre, ' ', d.apellido) AS docente_nombre,
-                d.especialidad AS docente_especialidad,
-                s.nombre AS sede_nombre,
-                s.barrio AS sede_barrio
+    $sql = "SELECT t.*, CONCAT(d.nombre, ' ', d.apellido) AS docente_nombre, s.nombre AS sede_nombre
             FROM talleres t
             INNER JOIN docentes d ON t.docente_id = d.id
             LEFT JOIN sedes s ON t.sede_id = s.id
             WHERE 1=1";
 
     $params = [];
-
+    if (!empty($buscar)) {
+        $sql .= " AND (t.nombre LIKE :buscar OR t.descripcion LIKE :buscar OR t.instrumento LIKE :buscar)";
+        $params[':buscar'] = '%' . $buscar . '%';
+    }
     if (!empty($filtroInstrumento)) {
-        $sql .= " AND t.instrumento = :instrumento";
-        $params[':instrumento'] = $filtroInstrumento;
+        $sql .= " AND t.instrumento LIKE :instrumento";
+        $params[':instrumento'] = '%' . $filtroInstrumento . '%';
     }
-
     if (!empty($filtroNivel)) {
-        $sql .= " AND t.nivel = :nivel";
-        $params[':nivel'] = $filtroNivel;
+        $sql .= " AND t.nivel LIKE :nivel";
+        $params[':nivel'] = '%' . $filtroNivel . '%';
     }
 
-    $sql .= " ORDER BY t.destacado DESC, t.instrumento ASC, t.nombre ASC";
-
+    $sql .= " ORDER BY t.destacado DESC, t.id ASC";
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
-    $talleres = $stmt->fetchAll();
-
-    // Consulta para obtener la lista de instrumentos únicos para el filtro rápido
-    $stmtInst = $pdo->query("SELECT DISTINCT instrumento FROM talleres ORDER BY instrumento ASC");
-    $instrumentosDisponibles = $stmtInst->fetchAll(PDO::FETCH_COLUMN);
+    $talleres = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
-    $errorBD = "No se pudieron recuperar los talleres: " . $e->getMessage();
     $talleres = [];
-    $instrumentosDisponibles = [];
+}
+
+// Array de respaldo oficial si la base de datos local aún no tiene registros
+if (empty($talleres) && empty($buscar) && empty($filtroInstrumento) && empty($filtroNivel)) {
+    $talleres_respaldo = [
+        [
+            'id' => 1, 'nombre' => 'Taller de Guitarra Criolla y Popular', 'instrumento' => 'Guitarra', 'nivel' => 'Inicial / Sin experiencia', 'edad_minima' => 7,
+            'descripcion' => 'Aprende tus primeros acordes, rasgueos folclóricos, ritmos de rock y canciones populares desde la primera clase sin necesidad de saber teoría previa.',
+            'requisitos' => 'No requiere conocimientos previos. Si no tenés guitarra, la escuela te presta una en aula.',
+            'dia_semana' => 'Martes y Jueves', 'horario' => '17:30 a 19:00 hs', 'docente_nombre' => 'Julián Morales', 'sede_nombre' => 'Sede Central - San Telmo',
+            'vacantes_disponibles' => 4, 'arancel_mensual' => 14500, 'instrumentos_prestamo_disponibles' => 6
+        ],
+        [
+            'id' => 2, 'nombre' => 'Taller de Violín: Primeras Cuerdas', 'instrumento' => 'Violín', 'nivel' => 'Inicial / Sin experiencia', 'edad_minima' => 7,
+            'descripcion' => 'Postura corporal relajada, agarre del arco, afinación y melodías sencillas. Clases dinámicas y grupales donde el juego y el oído son protagonistas.',
+            'requisitos' => 'Edad mínima 7 años. Contamos con violines de distintos tamaños (1/2, 3/4 y 4/4).',
+            'dia_semana' => 'Lunes y Miércoles', 'horario' => '18:00 a 19:30 hs', 'docente_nombre' => 'Camila Santillán', 'sede_nombre' => 'Sede Central - San Telmo',
+            'vacantes_disponibles' => 3, 'arancel_mensual' => 15500, 'instrumentos_prestamo_disponibles' => 5
+        ],
+        [
+            'id' => 3, 'nombre' => 'Taller de Batería y Pulso Rítmico', 'instrumento' => 'Batería', 'nivel' => 'Inicial / Sin experiencia', 'edad_minima' => 8,
+            'descripcion' => 'Coordinación motriz, rudimentos básicos, ritmos de rock, funk y cumbia. Práctica directa en sets acústicos y pads de práctica insonorizados.',
+            'requisitos' => 'Baquetas provistas para la primera clase. Apto para principiantes.',
+            'dia_semana' => 'Viernes', 'horario' => '16:00 a 18:00 hs', 'docente_nombre' => 'Facundo Pérez', 'sede_nombre' => 'Sede Central - San Telmo',
+            'vacantes_disponibles' => 2, 'arancel_mensual' => 16000, 'instrumentos_prestamo_disponibles' => 4
+        ],
+        [
+            'id' => 4, 'nombre' => 'Taller de Canto Popular y Expresión Vocal', 'instrumento' => 'Canto', 'nivel' => 'Inicial / Sin experiencia', 'edad_minima' => 10,
+            'descripcion' => 'Descubre tu voz natural sin forzar la garganta. Respiración, afinación, soltura escénica y ensamble a varias voces sobre repertorio popular.',
+            'requisitos' => 'Traer botella de agua. No se requiere experiencia previa.',
+            'dia_semana' => 'Lunes y Jueves', 'horario' => '19:00 a 20:30 hs', 'docente_nombre' => 'Valeria Corvalán', 'sede_nombre' => 'Anexo Comunitario - Almagro',
+            'vacantes_disponibles' => 5, 'arancel_mensual' => 14000, 'instrumentos_prestamo_disponibles' => 0
+        ],
+        [
+            'id' => 5, 'nombre' => 'Gran Ensamble Comunitario A Todo Ritmo', 'instrumento' => 'Ensamble', 'nivel' => 'Ensamble', 'edad_minima' => 10,
+            'descripcion' => 'El corazón de la escuela. Guitarras, vientos, teclados, percusión y voces unidas en arreglos orquestales colectivos de rock nacional y folklore.',
+            'requisitos' => 'Conocimientos básicos de tu instrumento o cursar un taller inicial en paralelo.',
+            'dia_semana' => 'Sábados', 'horario' => '15:00 a 18:00 hs', 'docente_nombre' => 'Julián Morales', 'sede_nombre' => 'Sede Central - San Telmo',
+            'vacantes_disponibles' => 8, 'arancel_mensual' => 9500, 'instrumentos_prestamo_disponibles' => 6
+        ],
+        [
+            'id' => 6, 'nombre' => 'Taller de Piano y Teclado Creativo', 'instrumento' => 'Piano', 'nivel' => 'Inicial / Sin experiencia', 'edad_minima' => 8,
+            'descripcion' => 'Conoce el teclado, lectura fluida en clave de sol y fa sin presiones, armonía de canciones y acompañamiento.',
+            'requisitos' => 'Cada alumno dispone de un teclado individual en el aula.',
+            'dia_semana' => 'Miércoles y Viernes', 'horario' => '18:00 a 20:00 hs', 'docente_nombre' => 'Lucía Herrera', 'sede_nombre' => 'Anexo Comunitario - Almagro',
+            'vacantes_disponibles' => 5, 'arancel_mensual' => 14500, 'instrumentos_prestamo_disponibles' => 8
+        ],
+        [
+            'id' => 7, 'nombre' => 'Taller de Flauta Traversa y Melodías', 'instrumento' => 'Flauta', 'nivel' => 'Inicial / Sin experiencia', 'edad_minima' => 9,
+            'descripcion' => 'Emisión del sonido, respiración diafragmática, digitación ágil y repertorio de música de películas y folklore.',
+            'requisitos' => 'Préstamo disponible con boquilla higienizada en cada encuentro.',
+            'dia_semana' => 'Sábados', 'horario' => '10:30 a 12:30 hs', 'docente_nombre' => 'Mariano Díaz', 'sede_nombre' => 'Anexo Comunitario - Almagro',
+            'vacantes_disponibles' => 4, 'arancel_mensual' => 15500, 'instrumentos_prestamo_disponibles' => 4
+        ],
+        [
+            'id' => 8, 'nombre' => 'Taller de Teclado y Sintetizadores', 'instrumento' => 'Teclado', 'nivel' => 'Intermedio', 'edad_minima' => 12,
+            'descripcion' => 'Sonidos modernos, síntesis analógica básica, arreglos pop y pads ambientales para tocar en bandas.',
+            'requisitos' => 'Conocimientos básicos de acordes y cifrado americano.',
+            'dia_semana' => 'Jueves', 'horario' => '19:00 a 20:30 hs', 'docente_nombre' => 'Lucía Herrera', 'sede_nombre' => 'Anexo Comunitario - Almagro',
+            'vacantes_disponibles' => 3, 'arancel_mensual' => 16000, 'instrumentos_prestamo_disponibles' => 4
+        ]
+    ];
+
+    $talleres = array_filter($talleres_respaldo, function($t) use ($buscar, $filtroInstrumento, $filtroNivel) {
+        $cumpleBusc = empty($buscar) || stripos($t['nombre'], $buscar) !== false || stripos($t['descripcion'], $buscar) !== false;
+        $cumpleIns  = empty($filtroInstrumento) || (stripos($t['instrumento'], $filtroInstrumento) !== false);
+        $cumpleNiv  = empty($filtroNivel) || stripos($t['nivel'], $filtroNivel) !== false;
+        return $cumpleBusc && $cumpleIns && $cumpleNiv;
+    });
 }
 ?>
 <!DOCTYPE html>
@@ -76,572 +110,191 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Talleres y Cursos | Escuela de Música "A Todo Ritmo"</title>
+    <title>Talleres - Escuela de Música A Todo Ritmo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Carter+One&family=Mukta:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
     <style>
-        /* ==========================================================================
-           ESTILOS GENERALES Y LAYOUT CENTRADO (MAX-WIDTH 1000PX)
-           ========================================================================== */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        body * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Mukta', sans-serif; }
+        body { background-color: #FFFAE6; color: #181818; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 30px 20px 50px 20px; }
+        .filtros-box { background-color: #FFFDF5; border: 2px solid #181818; border-radius: 24px; padding: 25px; margin-bottom: 40px; box-shadow: 4px 4px 0px #181818; }
+        .filtros-form { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
+        .search-input { flex: 1; min-width: 260px; padding: 10px 15px; border: 2px solid #181818; border-radius: 12px; font-size: 14px; background: #fff; }
+        .filtros-form select { padding: 10px 15px; border: 2px solid #181818; border-radius: 12px; background: white; font-weight: 600; font-size: 14px; }
+        .btn-filtrar { background-color: #F3D84F; color: #181818; font-family: 'Carter One', cursive; border: 2px solid #181818; padding: 10px 20px; font-size: 14px; border-radius: 12px; cursor: pointer; box-shadow: 2px 2px 0px #181818; }
+        .grid-talleres { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; margin-bottom: 50px; }
+        .card-taller { background: #FFFDF5; border: 2px solid #181818; border-radius: 24px; overflow: hidden; box-shadow: 4px 4px 0px #181818; display: flex; flex-direction: column; justify-content: space-between; }
+        .img-container { height: 190px; position: relative; border-bottom: 2px solid #181818; background: #181818; }
+        .img-container img { width: 100%; height: 100%; object-fit: cover; }
+        .badge-cat { position: absolute; top: 12px; left: 12px; background: #181818; color: #FFFDF5; padding: 4px 12px; border-radius: 20px; font-family: 'Carter One', cursive !important; font-size: 11px; }
+        .badge-vacantes { position: absolute; top: 12px; right: 12px; background: #24AB58; color: #FFF; padding: 4px 12px; border-radius: 20px; font-weight: 700; font-size: 11px; border: 1px solid #181818; }
+        .card-body { padding: 20px; flex-grow: 1; }
+        .meta-sup { font-size: 11px; font-weight: 800; color: #777; letter-spacing: 0.5px; margin-bottom: 8px; text-transform: uppercase; }
+        .card-body h3 { font-family: 'Carter One', cursive !important; font-size: 19px; color: #181818; margin-bottom: 10px; line-height: 1.3; }
+        .card-body p { font-size: 13.5px; color: #444; line-height: 1.5; margin-bottom: 18px; }
+        .info-line { font-size: 13.5px; color: #181818; font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+        .card-footer-price { border-top: 2px solid #181818; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: #FFFDF5; }
+        .price-box span { font-size: 11px; color: #555; display: block; font-weight: 700; text-transform: uppercase; }
+        .price-box strong { font-family: 'Carter One', cursive !important; font-size: 22px; color: #181818; }
+        .btn-det { background: white; border: 2px solid #181818; padding: 8px 14px; border-radius: 12px; font-weight: 700; font-size: 13px; text-decoration: none; color: #181818; box-shadow: 2px 2px 0px #181818; cursor: pointer; }
+        .btn-ins { background: #24AB58; color: #FFF; border: 2px solid #181818; padding: 8px 16px; border-radius: 12px; font-weight: 700; font-size: 13px; text-decoration: none; box-shadow: 2px 2px 0px #181818; }
 
-        body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f8fafc;
-            color: #1e293b;
-            line-height: 1.6;
-        }
+        /* Modal de detalles */
+        .modal-taller-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 9999; align-items: center; justify-content: center; padding: 20px; }
+        .modal-taller-overlay.abierto { display: flex; }
+        .modal-taller-caja { background: #FFFDF5; border: 3px solid #181818; border-radius: 24px; max-width: 560px; width: 100%; padding: 28px; box-shadow: 6px 6px 0px #181818; position: relative; }
+        .modal-taller-cerrar { position: absolute; top: 16px; right: 16px; background: #F3D84F; border: 2px solid #181818; border-radius: 8px; padding: 4px 10px; font-weight: 800; cursor: pointer; }
 
-        .contenedor {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        /* Encabezado y Navegación */
-        header {
-            background-color: #ffffff;
-            border-bottom: 2px solid #e2e8f0;
-            padding: 15px 0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
-        }
-
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo-box h1 {
-            font-size: 1.4rem;
-            color: #b93b2a;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-        }
-
-        .logo-box span {
-            font-size: 0.85rem;
-            color: #64748b;
-            font-weight: 500;
-            display: block;
-        }
-
-        nav ul {
-            list-style: none;
-            display: flex;
-            gap: 15px;
-        }
-
-        nav a {
-            text-decoration: none;
-            color: #334155;
-            font-weight: 600;
-            font-size: 0.95rem;
-            padding: 6px 12px;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-        }
-
-        nav a:hover, nav a.active {
-            color: #b93b2a;
-            background-color: #fef2f2;
-        }
-
-        /* Banner de Sección */
-        .hero-seccion {
-            background: linear-gradient(135deg, #7f1d1d, #b93b2a);
-            color: #ffffff;
-            padding: 35px 20px;
-            text-align: center;
-            border-radius: 8px;
-            margin: 25px auto 30px auto;
-        }
-
-        .hero-seccion h2 {
-            font-size: 2rem;
-            margin-bottom: 8px;
-            font-weight: 700;
-        }
-
-        .hero-seccion p {
-            font-size: 1.05rem;
-            max-width: 750px;
-            margin: 0 auto;
-            opacity: 0.95;
-        }
-
-        /* Barra de Filtros Compacta */
-        .filtros-box {
-            background-color: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            padding: 15px 20px;
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .filtros-form {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .filtros-form label {
-            font-size: 0.88rem;
-            font-weight: 600;
-            color: #475569;
-        }
-
-        .filtros-form select {
-            padding: 6px 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 4px;
-            font-size: 0.88rem;
-            color: #1e293b;
-            background-color: #fff;
-        }
-
-        .btn-filtrar {
-            background-color: #b93b2a;
-            color: #ffffff;
-            border: none;
-            padding: 7px 16px;
-            font-size: 0.88rem;
-            font-weight: 600;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .btn-filtrar:hover {
-            background-color: #991b1b;
-        }
-
-        .btn-limpiar {
-            color: #64748b;
-            font-size: 0.85rem;
-            text-decoration: underline;
-            margin-left: 5px;
-        }
-
-        .conteo-resultados {
-            font-size: 0.88rem;
-            color: #64748b;
-        }
-
-        /* ==========================================================================
-           TARJETAS HORIZONTALES COMPACTAS DE TALLERES
-           ========================================================================== */
-        .lista-talleres {
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
-            margin-bottom: 40px;
-        }
-
-        .tarjeta-taller-horizontal {
-            display: flex;
-            background-color: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
-        }
-
-        .tarjeta-taller-horizontal:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.07);
-            border-color: #cbd5e1;
-        }
-
-        /* Columna Izquierda: Imagen fija compacta */
-        .tarjeta-taller-foto {
-            width: 200px;
-            min-width: 200px;
-            position: relative;
-            background-color: #1e293b;
-        }
-
-        .tarjeta-taller-foto img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-        .badge-instrumento {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background-color: rgba(15, 23, 42, 0.88);
-            color: #ffffff;
-            font-size: 0.75rem;
-            font-weight: 700;
-            padding: 3px 8px;
-            border-radius: 3px;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-
-        .badge-destacado {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            background-color: #ea580c;
-            color: #ffffff;
-            font-size: 0.7rem;
-            font-weight: 700;
-            padding: 2px 7px;
-            border-radius: 3px;
-        }
-
-        /* Columna Derecha: Contenido y Acciones */
-        .tarjeta-taller-contenido {
-            padding: 18px 22px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .taller-cabecera {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 15px;
-            margin-bottom: 8px;
-        }
-
-        .taller-cabecera h3 {
-            font-size: 1.2rem;
-            color: #0f172a;
-            font-weight: 700;
-        }
-
-        .taller-arancel {
-            text-align: right;
-            white-space: nowrap;
-        }
-
-        .arancel-valor {
-            font-size: 1.25rem;
-            font-weight: 800;
-            color: #b93b2a;
-        }
-
-        .arancel-periodo {
-            font-size: 0.75rem;
-            color: #64748b;
-            display: block;
-        }
-
-        .taller-docente {
-            font-size: 0.9rem;
-            color: #475569;
-            margin-bottom: 8px;
-        }
-
-        .taller-docente strong {
-            color: #1e293b;
-        }
-
-        .taller-docente a {
-            color: #b93b2a;
-            text-decoration: none;
-        }
-
-        .taller-docente a:hover {
-            text-decoration: underline;
-        }
-
-        .taller-descripcion {
-            font-size: 0.9rem;
-            color: #475569;
-            margin-bottom: 14px;
-            line-height: 1.5;
-        }
-
-        /* Fila de Metadatos Compacta */
-        .taller-detalles-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px 16px;
-            background-color: #f8fafc;
-            border: 1px solid #f1f5f9;
-            padding: 10px 14px;
-            border-radius: 5px;
-            margin-bottom: 14px;
-            font-size: 0.84rem;
-        }
-
-        .detalle-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            color: #334155;
-        }
-
-        .detalle-item strong {
-            color: #0f172a;
-        }
-
-        .badge-nivel {
-            background-color: #e0f2fe;
-            color: #0369a1;
-            padding: 2px 7px;
-            border-radius: 3px;
-            font-weight: 600;
-            font-size: 0.8rem;
-        }
-
-        .badge-vacantes {
-            background-color: #fef2f2;
-            color: #991b1b;
-            padding: 2px 7px;
-            border-radius: 3px;
-            font-weight: 600;
-            font-size: 0.8rem;
-        }
-
-        .badge-prestamo {
-            background-color: #ecfdf5;
-            color: #047857;
-            padding: 2px 7px;
-            border-radius: 3px;
-            font-weight: 600;
-            font-size: 0.8rem;
-        }
-
-        /* Fila Inferior con Botón de Acción */
-        .taller-acciones {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-top: 1px solid #f1f5f9;
-            padding-top: 12px;
-        }
-
-        .taller-aviso {
-            font-size: 0.82rem;
-            color: #64748b;
-        }
-
-        .btn-inscribirse {
-            display: inline-block;
-            background-color: #b93b2a;
-            color: #ffffff;
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 600;
-            padding: 8px 18px;
-            border-radius: 4px;
-            transition: background 0.2s;
-        }
-
-        .btn-inscribirse:hover {
-            background-color: #991b1b;
-        }
-
-        /* Estado Vacío o Error */
-        .alerta-vacio {
-            background-color: #fff;
-            border: 1px dashed #cbd5e1;
-            padding: 40px;
-            text-align: center;
-            border-radius: 6px;
-            color: #64748b;
-        }
-
-        /* Footer Clásico */
-        footer {
-            background-color: #0f172a;
-            color: #94a3b8;
-            padding: 30px 0;
-            margin-top: 50px;
-            font-size: 0.88rem;
-            border-top: 3px solid #b93b2a;
-        }
-
-        .footer-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .footer-content a {
-            color: #cbd5e1;
-            text-decoration: none;
-        }
-
-        .footer-content a:hover {
-            color: #ffffff;
-            text-decoration: underline;
-        }
+        @media (max-width: 992px) { .grid-talleres { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 650px) { .grid-talleres { grid-template-columns: 1fr; } }
     </style>
+
+    <link rel="stylesheet" href="index.css">
 </head>
 <body>
 
-    <!-- ENCABEZADO Y NAVEGACIÓN -->
-    <header>
-        <div class="contenedor header-content">
-            <div class="logo-box">
-                <h1>A TODO RITMO</h1>
-                <span>Escuela Popular de Música Comunitaria</span>
-            </div>
-            <nav>
-                <ul>
-                    <li><a href="index.php">Inicio</a></li>
-                    <li><a href="nosotros.php">Nosotros</a></li>
-                    <li><a href="talleres.php" class="active">Talleres</a></li>
-                    <li><a href="docentes.php">Docentes</a></li>
-                    <li><a href="inscripcion.php">Inscripción</a></li>
-                    <li><a href="contacto.php">Contacto</a></li>
-                </ul>
-            </nav>
+    <!-- HEADER -->
+    <?php include 'header.php'; ?>
+
+    <main class="container">
+        <div style="margin-bottom: 24px;">
+            <p style="font-size: 12px; font-weight: bold; color: #24AB58; text-transform: uppercase; letter-spacing: 1px;">PROPUESTA ACADÉMICA 2026</p>
+            <h2 style="font-family: 'Carter One', cursive; font-size: 36px; margin-top: 4px;">Nuestros Talleres Instrumentales</h2>
+            <p style="font-size: 15px; color: #555; margin-top: 4px;">Clases grupales reducidas, método práctico desde el primer día y acceso al Banco Solidario.</p>
         </div>
-    </header>
 
-    <!-- CONTENEDOR PRINCIPAL (MAX-WIDTH: 1000PX) -->
-    <main class="contenedor">
-
-        <!-- Banner de Encabezado -->
-        <section class="hero-seccion">
-            <h2>Nuestros Talleres de Música</h2>
-            <p>Clases semanales teórico-prácticas con enfoque grupal y préstamo gratuito de instrumentos en sede.</p>
-        </section>
-
-        <!-- Filtros Rápidos Compactos -->
         <section class="filtros-box">
             <form method="GET" action="talleres.php" class="filtros-form">
-                <label for="instrumento">Filtrar por Instrumento:</label>
-                <select name="instrumento" id="instrumento">
-                    <option value="">-- Todos los instrumentos --</option>
-                    <?php foreach ($instrumentosDisponibles as $inst): ?>
-                        <option value="<?= htmlspecialchars($inst) ?>" <?= ($filtroInstrumento === $inst) ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($inst) ?>
-                        </option>
-                    <?php endforeach; ?>
+                <input type="text" class="search-input" name="buscar" placeholder="Buscar por instrumento, tema o palabra..." value="<?= htmlspecialchars($buscar) ?>">
+
+                <select name="instrumento">
+                    <option value="">Todos los instrumentos</option>
+                    <option value="Guitarra" <?= $filtroInstrumento=='Guitarra'?'selected':'' ?>>Guitarra</option>
+                    <option value="Violín" <?= $filtroInstrumento=='Violín'?'selected':'' ?>>Violín</option>
+                    <option value="Batería" <?= $filtroInstrumento=='Batería'?'selected':'' ?>>Batería</option>
+                    <option value="Piano" <?= $filtroInstrumento=='Piano'?'selected':'' ?>>Piano</option>
+                    <option value="Flauta" <?= $filtroInstrumento=='Flauta'?'selected':'' ?>>Flauta</option>
+                    <option value="Teclado" <?= $filtroInstrumento=='Teclado'?'selected':'' ?>>Teclado</option>
+                    <option value="Canto" <?= $filtroInstrumento=='Canto'?'selected':'' ?>>Canto Popular</option>
+                    <option value="Ensamble" <?= $filtroInstrumento=='Ensamble'?'selected':'' ?>>Ensamble</option>
                 </select>
 
-                <label for="nivel">Nivel:</label>
-                <select name="nivel" id="nivel">
-                    <option value="">-- Todos los niveles --</option>
-                    <option value="Inicial / Sin experiencia" <?= ($filtroNivel === 'Inicial / Sin experiencia') ? 'selected' : '' ?>>Inicial / Sin experiencia</option>
+                <select name="nivel">
+                    <option value="">Todos los niveles</option>
+                    <option value="Inicial / Sin experiencia" <?= ($filtroNivel === 'Inicial / Sin experiencia') ? 'selected' : '' ?>>Inicial</option>
                     <option value="Intermedio" <?= ($filtroNivel === 'Intermedio') ? 'selected' : '' ?>>Intermedio</option>
                     <option value="Avanzado" <?= ($filtroNivel === 'Avanzado') ? 'selected' : '' ?>>Avanzado</option>
                     <option value="Ensamble" <?= ($filtroNivel === 'Ensamble') ? 'selected' : '' ?>>Ensamble</option>
                 </select>
 
                 <button type="submit" class="btn-filtrar">Filtrar</button>
-                <?php if (!empty($filtroInstrumento) || !empty($filtroNivel)): ?>
-                    <a href="talleres.php" class="btn-limpiar">Restablecer</a>
+                <?php if (!empty($buscar) || !empty($filtroInstrumento) || !empty($filtroNivel)): ?>
+                    <a href="talleres.php" style="color:#24AB58; font-weight:700; text-decoration:underline; font-size:14px; margin-left:5px;">Limpiar</a>
                 <?php endif; ?>
             </form>
-
-            <div class="conteo-resultados">
-                Mostrando <strong><?= count($talleres) ?></strong> taller(es) disponible(s)
-            </div>
         </section>
 
-        <!-- LISTADO DE TARJETAS HORIZONTALES COMPACTAS -->
-        <section class="lista-talleres">
+        <div class="grid-talleres">
             <?php if (!empty($talleres)): ?>
-                <?php foreach ($talleres as $taller): ?>
-                    <article class="tarjeta-taller-horizontal">
-                        <!-- Foto del Taller / Instrumento -->
-                        <div class="tarjeta-taller-foto">
-                            <img src="<?= htmlspecialchars($taller['imagen_url'] ?? 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=400&q=80') ?>" alt="<?= htmlspecialchars($taller['nombre']) ?>">
-                            <span class="badge-instrumento"><?= htmlspecialchars($taller['instrumento']) ?></span>
-                            <?php if (!empty($taller['destacado'])): ?>
-                                <span class="badge-destacado">Destacado</span>
-                            <?php endif; ?>
+                <?php foreach ($talleres as $taller):
+                    $img_src = !empty($taller['imagen_url']) ? $taller['imagen_url'] : "img/guitarra.jpg";
+                    if (empty($taller['imagen_url'])) {
+                        if (stripos($taller['instrumento'], 'viol') !== false) $img_src = "img/violin.jpg";
+                        if (stripos($taller['instrumento'], 'bat') !== false) $img_src = "img/bateria.jpg";
+                        if (stripos($taller['instrumento'], 'canto') !== false || $taller['id'] == 4) $img_src = "img/microfono.jpg";
+                        if (stripos($taller['instrumento'], 'ensam') !== false || $taller['id'] == 5) $img_src = "img/ensamble.jpg";
+                        if (stripos($taller['instrumento'], 'piano') !== false || $taller['id'] == 6) $img_src = "img/piano.jpg";
+                        if (stripos($taller['instrumento'], 'flaut') !== false || $taller['id'] == 7) $img_src = "img/flauta.jpg";
+                        if (stripos($taller['instrumento'], 'tecla') !== false || $taller['id'] == 8) $img_src = "img/teclado.jpg";
+                    }
+                    $prestamo_cant = (int)($taller['instrumentos_prestamo_disponibles'] ?? 0);
+                    $sede_label = !empty($taller['sede_nombre']) ? $taller['sede_nombre'] : 'Sede Central - San Telmo';
+                    $req_label = !empty($taller['requisitos']) ? $taller['requisitos'] : 'No se requieren conocimientos previos.';
+                ?>
+                    <article class="card-taller">
+                        <div class="img-container">
+                            <img src="<?= htmlspecialchars($img_src) ?>" alt="<?= htmlspecialchars($taller['nombre']) ?>">
+                            <span class="badge-cat"><?= htmlspecialchars($taller['instrumento']) ?></span>
+                            <span class="badge-vacantes"><?= (int)$taller['vacantes_disponibles'] ?> vacantes libres</span>
                         </div>
 
-                        <!-- Contenido del Taller -->
-                        <div class="tarjeta-taller-contenido">
-                            <div>
-                                <div class="taller-cabecera">
-                                    <h3><?= htmlspecialchars($taller['nombre']) ?></h3>
-                                    <div class="taller-arancel">
-                                        <span class="arancel-valor">$<?= number_format($taller['arancel_mensual'], 0, ',', '.') ?></span>
-                                        <span class="arancel-periodo">por mes</span>
-                                    </div>
-                                </div>
+                        <div class="card-body">
+                            <div class="meta-sup">NIVEL: <?= htmlspecialchars($taller['nivel']) ?> • EDAD: +<?= (int)$taller['edad_minima'] ?> AÑOS</div>
+                            <h3><?= htmlspecialchars($taller['nombre']) ?></h3>
+                            <p><?= htmlspecialchars($taller['descripcion']) ?></p>
 
-                                <div class="taller-docente">
-                                    Profesor/a: <strong><a href="docentes.php#docente-<?= $taller['docente_id'] ?>"><?= htmlspecialchars($taller['docente_nombre']) ?></a></strong> (<?= htmlspecialchars($taller['docente_especialidad']) ?>)
-                                </div>
+                            <div class="info-line">📅 <?= htmlspecialchars($taller['dia_semana']) ?></div>
+                            <div class="info-line">🕒 <?= htmlspecialchars($taller['horario']) ?> (<?= htmlspecialchars($taller['modalidad'] ?? 'Presencial') ?>)</div>
+                            <div class="info-line">👤 Prof. <?= htmlspecialchars($taller['docente_nombre']) ?></div>
+                            <div class="info-line">🎵 Préstamo de Instrumento: <span style="color:#24AB58; font-weight:700;"><?= $prestamo_cant > 0 ? "Disponible ($prestamo_cant en aula)" : 'No aplica (Voz)' ?></span></div>
+                        </div>
 
-                                <p class="taller-descripcion">
-                                    <?= htmlspecialchars($taller['descripcion']) ?>
-                                </p>
+                        <div class="card-footer-price">
+                            <div class="price-box">
+                                <span>Arancel Mensual</span>
+                                <strong>$<?= number_format((float)$taller['arancel_mensual'], 0, ',', '.') ?></strong>
                             </div>
-
-                            <!-- Fila de Detalles Clave -->
-                            <div class="taller-detalles-grid">
-                                <div class="detalle-item">
-                                    <strong>Horario:</strong> <?= htmlspecialchars($taller['dia_semana']) ?>, <?= htmlspecialchars($taller['horario']) ?>
-                                </div>
-                                <div class="detalle-item">
-                                    <strong>Sede:</strong> <?= htmlspecialchars($taller['sede_nombre'] ?? 'Sede Central') ?>
-                                </div>
-                                <div class="detalle-item">
-                                    <strong>Nivel:</strong> <span class="badge-nivel"><?= htmlspecialchars($taller['nivel']) ?></span>
-                                </div>
-                                <div class="detalle-item">
-                                    <strong>Vacantes:</strong> <span class="badge-vacantes"><?= (int)$taller['vacantes_disponibles'] ?> libres (de <?= (int)$taller['vacantes_totales'] ?>)</span>
-                                </div>
-                                <div class="detalle-item">
-                                    <strong>Préstamo:</strong> <span class="badge-prestamo"><?= (int)$taller['instrumentos_prestamo_disponibles'] ?> instrumentos en aula</span>
-                                </div>
-                            </div>
-
-                            <!-- Acciones (Sin formulario de matrícula rápida; redirección a inscripcion.php) -->
-                            <div class="taller-acciones">
-                                <div class="taller-aviso">
-                                    Requisito: Edad mínima <?= (int)$taller['edad_minima'] ?> años. <?= htmlspecialchars($taller['modalidad']) ?>.
-                                </div>
-                                <a href="inscripcion.php?taller_id=<?= (int)$taller['id'] ?>" class="btn-inscribirse">
-                                    Inscribirme al Taller &rarr;
-                                </a>
+                            <div style="display: flex; gap: 8px;">
+                                <button type="button"
+                                        class="btn-det"
+                                        onclick="abrirDetallesTaller(this)"
+                                        data-nombre="<?= htmlspecialchars($taller['nombre']) ?>"
+                                        data-docente="<?= htmlspecialchars($taller['docente_nombre']) ?>"
+                                        data-sede="<?= htmlspecialchars($sede_label) ?>"
+                                        data-horario="<?= htmlspecialchars($taller['dia_semana'] . ' • ' . $taller['horario']) ?>"
+                                        data-desc="<?= htmlspecialchars($taller['descripcion']) ?>"
+                                        data-req="<?= htmlspecialchars($req_label) ?>"
+                                        data-link="inscripcion.php?taller_id=<?= (int)$taller['id'] ?>">Detalles</button>
+                                <a href="inscripcion.php?taller_id=<?= (int)$taller['id'] ?>" class="btn-ins">Inscribirme →</a>
                             </div>
                         </div>
                     </article>
                 <?php endforeach; ?>
             <?php else: ?>
-                <div class="alerta-vacio">
-                    <h3>No se encontraron talleres con los filtros seleccionados</h3>
-                    <p>Por favor intenta restablecer los filtros para ver todos los cursos disponibles.</p>
-                    <p style="margin-top: 15px;"><a href="talleres.php" class="btn-filtrar" style="text-decoration:none; display:inline-block;">Ver Todos</a></p>
+                <div style="grid-column: span 3; text-align: center; padding: 40px; background: #FFFDF5; border: 2px dashed #181818; border-radius: 20px;">
+                    <h3 style="font-family:'Carter One', cursive;">No se encontraron talleres con los filtros seleccionados</h3>
+                    <p style="margin-top: 10px;"><a href="talleres.php" class="btn-filtrar" style="text-decoration:none; display:inline-block;">Ver todos los talleres</a></p>
                 </div>
             <?php endif; ?>
-        </section>
-
+        </div>
     </main>
 
-    <!-- PIE DE PÁGINA -->
-    <footer>
-        <div class="contenedor footer-content">
-            <div>
-                <strong>Escuela de Música "A Todo Ritmo"</strong> &copy; <?= date('Y'); ?>. Asociación Civil Sin Fines de Lucro.
+    <!-- MODAL DETALLES DE TALLER -->
+    <div id="modal-taller" class="modal-taller-overlay" onclick="if(event.target===this)cerrarDetallesTaller()">
+        <div class="modal-taller-caja">
+            <button type="button" class="modal-taller-cerrar" onclick="cerrarDetallesTaller()">✕</button>
+            <h3 id="md-titulo" style="font-family:'Carter One', cursive; font-size:22px; margin-bottom:10px; padding-right:35px;"></h3>
+            <p id="md-desc" style="font-size:14.5px; color:#444; line-height:1.5; margin-bottom:14px;"></p>
+            <div style="background:#fffbeb; border:2px solid #181818; border-radius:14px; padding:14px; font-size:13.5px; line-height:1.6; margin-bottom:18px;">
+                <div><strong>👤 Docente:</strong> <span id="md-docente"></span></div>
+                <div><strong>📅 Horario:</strong> <span id="md-horario"></span></div>
+                <div><strong>📍 Sede:</strong> <span id="md-sede"></span></div>
+                <div><strong>📋 Requisitos:</strong> <span id="md-req"></span></div>
             </div>
-            <div>
-                <a href="nosotros.php">Nuestra Historia</a> &nbsp;|&nbsp;
-                <a href="docentes.php">Cuerpo Docente</a> &nbsp;|&nbsp;
-                <a href="inscripcion.php">Sección de Inscripción</a>
+            <div style="text-align:right;">
+                <a id="md-link" href="inscripcion.php" class="btn-ins" style="display:inline-block;">Inscribirme a este taller →</a>
             </div>
         </div>
-    </footer>
+    </div>
 
+    <script>
+        function abrirDetallesTaller(btn) {
+            document.getElementById('md-titulo').textContent = btn.getAttribute('data-nombre');
+            document.getElementById('md-desc').textContent = btn.getAttribute('data-desc');
+            document.getElementById('md-docente').textContent = btn.getAttribute('data-docente');
+            document.getElementById('md-horario').textContent = btn.getAttribute('data-horario');
+            document.getElementById('md-sede').textContent = btn.getAttribute('data-sede');
+            document.getElementById('md-req').textContent = btn.getAttribute('data-req');
+            document.getElementById('md-link').href = btn.getAttribute('data-link');
+            document.getElementById('modal-taller').classList.add('abierto');
+        }
+        function cerrarDetallesTaller() {
+            document.getElementById('modal-taller').classList.remove('abierto');
+        }
+    </script>
+
+    <?php include 'footer.php'; ?>
 </body>
 </html>

@@ -1,51 +1,65 @@
 <?php
-/**
- * Proyecto: Escuela de Música "A Todo Ritmo"
- * Archivo: docentes.php
- * Sección: Docentes - Equipo Pedagógico
- * Requisitos: HTML5 Clásico, PHP Nativo con PDO, Contenedor max-width 1000px, Tarjetas Horizontales Compactas.
- *             Muestra nombre, especialidad y trayectoria pedagógica.
- *             Sin formulario de matrícula rápida.
- */
-
 require_once __DIR__ . '/conexion.php';
 
-// Consulta SQL con PDO para obtener todos los docentes activos de la escuela
 try {
-    $sqlDocentes = "SELECT 
-                        d.id, 
-                        d.nombre, 
-                        d.apellido, 
-                        d.especialidad, 
-                        d.instrumento_principal, 
-                        d.biografia, 
-                        d.trayectoria_cv, 
-                        d.email, 
-                        d.telefono, 
-                        d.foto_url
-                    FROM docentes d
-                    WHERE d.activo = 1
-                    ORDER BY d.apellido ASC, d.nombre ASC";
+    $sqlDocentes = "SELECT * FROM docentes WHERE activo = 1 ORDER BY id ASC";
+    $stmt = $pdo->prepare($sqlDocentes);
+    $stmt->execute();
+    $docentes_db = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    $stmtDocentes = $pdo->prepare($sqlDocentes);
-    $stmtDocentes->execute();
-    $docentes = $stmtDocentes->fetchAll();
-
-    // Consulta complementaria para listar los talleres a cargo de cada docente
-    $sqlTalleresDoc = "SELECT id, nombre, instrumento, nivel, docente_id FROM talleres ORDER BY nombre ASC";
-    $stmtTalleresDoc = $pdo->query($sqlTalleresDoc);
-    $todosTalleres = $stmtTalleresDoc->fetchAll();
-
-    // Agrupar talleres por docente_id
-    $talleresPorDocente = [];
-    foreach ($todosTalleres as $t) {
-        $talleresPorDocente[$t['docente_id']][] = $t;
+    // Consultamos los talleres reales por docente para vincular los IDs correctos
+    $stmtTalleres = $pdo->query("SELECT id, nombre, docente_id FROM talleres ORDER BY id ASC");
+    $talleres_por_docente = [];
+    foreach ($stmtTalleres->fetchAll(PDO::FETCH_ASSOC) as $t) {
+        $talleres_por_docente[$t['docente_id']][] = [
+            'nombre' => $t['nombre'],
+            'link'   => 'inscripcion.php?taller_id=' . (int)$t['id']
+        ];
     }
 
-} catch (PDOException $e) {
-    $errorBD = "Error al consultar los profesores: " . $e->getMessage();
     $docentes = [];
-    $talleresPorDocente = [];
+    foreach ($docentes_db as $doc) {
+        $bio_real = $doc['biografia'] ?? ($doc['descripcion'] ?? 'Docente de la institución.');
+        $cv_real  = $doc['trayectoria_cv'] ?? ($doc['cv'] ?? 'Egresado/a de conservatorios nacionales.');
+
+        if (!empty($doc['imagen'])) {
+            $ruta_imagen = $doc['imagen'];
+        } elseif (!empty($doc['foto_url'])) {
+            $ruta_imagen = $doc['foto_url'];
+        } else {
+            $ruta_imagen = 'img/default-docente.jpg';
+        }
+
+        $instrumento_real = !empty($doc['instrumento_principal']) ? $doc['instrumento_principal'] : 'Música';
+
+        $talleres_docente = [];
+        if (!empty($talleres_por_docente[$doc['id']])) {
+            $talleres_docente = $talleres_por_docente[$doc['id']];
+        } elseif (!empty($doc['talleres_texto'])) {
+            $lista = explode(',', $doc['talleres_texto']);
+            foreach ($lista as $t) {
+                $talleres_docente[] = ['nombre' => trim($t), 'link' => 'inscripcion.php?taller=' . (int)$doc['id']];
+            }
+        } else {
+            $talleres_docente[] = ['nombre' => 'Taller de ' . $instrumento_real, 'link' => 'inscripcion.php?taller=' . (int)$doc['id']];
+        }
+
+        $docentes[] = [
+            'id'                    => $doc['id'],
+            'nombre'                => $doc['nombre'] ?? 'Docente',
+            'apellido'              => $doc['apellido'] ?? '',
+            'especialidad'          => $doc['especialidad'] ?? 'Música Popular',
+            'instrumento_principal' => $instrumento_real,
+            'biografia'             => $bio_real,
+            'email'                 => !empty($doc['email']) ? $doc['email'] : 'info@atodoritmo.edu.ar',
+            'telefono'              => !empty($doc['telefono']) ? $doc['telefono'] : '(011) 15-5829-1022',
+            'imagen'                => $ruta_imagen,
+            'talleres'              => $talleres_docente,
+            'trayectoria_cv'        => $cv_real
+        ];
+    }
+} catch (PDOException $e) {
+    $docentes = [];
 }
 ?>
 <!DOCTYPE html>
@@ -54,417 +68,145 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cuerpo Docente | Escuela de Música "A Todo Ritmo"</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Carter+One&family=Mukta:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+
     <style>
-        /* ==========================================================================
-           ESTILOS GENERALES Y LAYOUT CENTRADO (MAX-WIDTH 1000PX)
-           ========================================================================== */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
         body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f8fafc;
-            color: #1e293b;
-            line-height: 1.6;
+            font-family: 'Mukta', Arial, sans-serif !important;
         }
 
-        .contenedor {
-            max-width: 1000px;
-            margin: 0 auto;
+        h2, h3, .malla-docentes-propia h3 {
+            font-family: 'Carter One', cursive !important;
+            font-weight: 400 !important;
+        }
+
+        .malla-docentes-propia {
+            display: grid !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 30px !important;
+            max-width: 1200px;
+            margin: 40px auto 60px auto;
             padding: 0 20px;
+            box-sizing: border-box;
         }
+        .bloque-tarjeta-docente { background: #ffffff !important; border: 2px solid #181818 !important; border-radius: 24px !important; overflow: hidden !important; box-shadow: 4px 4px 0px #181818 !important; display: flex !important; flex-direction: column !important; width: 100% !important; max-width: 360px !important; margin: 0 auto !important; padding: 0 !important; box-sizing: border-box; }
+        .caja-foto-docente { height: 250px !important; position: relative !important; border-bottom: 2px solid #181818 !important; background: #e3e1da !important; overflow: hidden !important; width: 100% !important; }
+        .caja-foto-docente img { width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important; }
+        .etiqueta-doc-instrumento { position: absolute !important; top: 15px !important; left: 15px !important; background-color: #ffcc00 !important; color: #181818 !important; border: 2px solid #181818 !important; font-weight: 700 !important; padding: 6px 15px !important; border-radius: 50px !important; font-size: 13px !important; z-index: 5; }
+        .cuerpo-tarjeta-docente { padding: 25px !important; display: flex !important; flex-direction: column !important; background: #ffffff !important; flex-grow: 1 !important; }
+        .cuerpo-tarjeta-docente h3 { font-size: 22px !important; font-weight: 800 !important; color: #181818 !important; margin: 0 0 5px 0 !important; text-align: left !important; }
+        .cuerpo-tarjeta-docente .subtitulo-esp { color: #24AB58 !important; font-weight: 600 !important; font-size: 14px !important; margin: 0 0 15px 0 !important; text-align: left !important; }
+        .cuerpo-tarjeta-docente .resumen-bio { font-size: 13.5px !important; line-height: 1.6 !important; color: #6c757d !important; margin: 0 0 20px 0 !important; text-align: left !important; }
+        .tit-talleres { text-transform: uppercase; font-weight: 700; color: #6c757d; font-size: 11px; letter-spacing: 0.5px; margin: 0 0 8px 0; text-align: left !important; }
+        .fila-taller-item { display: flex !important; justify-content: space-between !important; align-items: center !important; padding: 10px 12px !important; background-color: #f8f9fa !important; border: 1px solid #dee2e6 !important; border-radius: 8px !important; margin-bottom: 8px !important; gap: 10px; }
+        .fila-taller-item span { font-size: 13px !important; font-weight: 500 !important; color: #212529 !important; }
+        .btn-taller-comprar { background-color: #24AB58 !important; color: #ffffff !important; text-decoration: none !important; font-weight: 600 !important; font-size: 12px !important; padding: 6px 14px !important; border-radius: 50px !important; border: 1px solid #181818 !important; display: inline-block !important; white-space: nowrap; }
+        .desplegable-cv-nat { border-top: 1px solid #dee2e6 !important; margin-top: 15px !important; padding-top: 10px !important; }
+        .desplegable-cv-nat summary { font-size: 14px !important; font-weight: 700 !important; color: #181818 !important; cursor: pointer !important; list-style: none !important; display: flex !important; justify-content: space-between !important; align-items: center; padding: 8px 4px; }
+        .desplegable-cv-nat summary::-webkit-details-marker { display: none !important; }
+        .desplegable-cv-nat summary .tit-btn-cv { display: flex; align-items: center; }
+        .desplegable-cv-nat summary .tit-btn-cv::before { content: "🔰" !important; margin-right: 8px; }
+        .desplegable-cv-nat summary::after { content: "▼" !important; font-size: 11px; color: #181818; }
+        .desplegable-cv-nat[open] summary::after { content: "▲" !important; }
+        .desplegable-cv-nat .caja-interior-cv { background-color: #fbf9f1 !important; border: 1px solid #f3eedb !important; border-radius: 16px !important; padding: 20px !important; margin-top: 10px !important; box-sizing: border-box !important; }
+        .desplegable-cv-nat .caja-interior-cv strong { font-size: 14px !important; color: #181818 !important; display: flex !important; align-items: center !important; margin-bottom: 8px !important; }
+        .desplegable-cv-nat .caja-interior-cv strong::before { content: "✓" !important; color: #24AB58 !important; font-weight: 900 !important; margin-right: 6px !important; }
+        .desplegable-cv-nat .caja-interior-cv p { font-size: 13.5px !important; line-height: 1.6 !important; color: #555555 !important; margin: 0 0 15px 0 !important; text-align: left !important; }
+        .desplegable-cv-nat .contacto-docente-bloque { border-top: 1px solid #ebdcb9 !important; padding-top: 12px !important; margin-top: 10px !important; }
+        .desplegable-cv-nat .contacto-item { font-size: 12.5px !important; color: #6c757d !important; margin-bottom: 6px !important; display: flex !important; align-items: center !important; }
+        .desplegable-cv-nat .contacto-item:last-child { margin-bottom: 0 !important; }
+        .seccion-final-cta { background-color: #181818 !important; border-top: 4px solid #ffcc00 !important; border-bottom: 4px solid #ffcc00 !important; text-align: center !important; padding: 50px 20px !important; color: #ffcc00 !important; margin-top: 40px; }
+        .seccion-final-cta h3 { font-size: 28px !important; font-weight: 800 !important; margin: 0 0 10px 0 !important; }
+        .seccion-final-cta p { color: #ffffff !important; font-size: 14px !important; margin: 0 0 25px 0 !important; line-height: 1.5 !important; }
+        .btn-final-enlace { background-color: #24AB58 !important; color: #ffffff !important; font-weight: 700 !important; text-decoration: none !important; padding: 12px 40px !important; border-radius: 50px !important; border: 1px solid #ffcc00 !important; display: inline-block !important; font-size: 15px !important; }
 
-        /* Encabezado y Navegación */
-        header {
-            background-color: #ffffff;
-            border-bottom: 2px solid #e2e8f0;
-            padding: 15px 0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+        @media (max-width: 992px) {
+            .malla-docentes-propia { grid-template-columns: repeat(2, 1fr) !important; }
         }
-
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo-box h1 {
-            font-size: 1.4rem;
-            color: #b93b2a;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-        }
-
-        .logo-box span {
-            font-size: 0.85rem;
-            color: #64748b;
-            font-weight: 500;
-            display: block;
-        }
-
-        nav ul {
-            list-style: none;
-            display: flex;
-            gap: 15px;
-        }
-
-        nav a {
-            text-decoration: none;
-            color: #334155;
-            font-weight: 600;
-            font-size: 0.95rem;
-            padding: 6px 12px;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-        }
-
-        nav a:hover, nav a.active {
-            color: #b93b2a;
-            background-color: #fef2f2;
-        }
-
-        /* Banner Hero de Sección */
-        .hero-seccion {
-            background: linear-gradient(135deg, #7f1d1d, #b93b2a);
-            color: #ffffff;
-            padding: 35px 20px;
-            text-align: center;
-            border-radius: 8px;
-            margin: 25px auto 30px auto;
-        }
-
-        .hero-seccion h2 {
-            font-size: 2rem;
-            margin-bottom: 8px;
-            font-weight: 700;
-        }
-
-        .hero-seccion p {
-            font-size: 1.05rem;
-            max-width: 750px;
-            margin: 0 auto;
-            opacity: 0.95;
-        }
-
-        /* Declaración Institucional Pedagógica */
-        .bloque-intro {
-            background-color: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-left: 4px solid #b93b2a;
-            padding: 20px 24px;
-            border-radius: 6px;
-            margin-bottom: 30px;
-            font-size: 0.95rem;
-            color: #334155;
-        }
-
-        /* ==========================================================================
-           TARJETAS HORIZONTALES COMPACTAS DE DOCENTES
-           ========================================================================== */
-        .lista-docentes {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            margin-bottom: 45px;
-        }
-
-        .tarjeta-docente-horizontal {
-            display: flex;
-            background-color: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
-        }
-
-        .tarjeta-docente-horizontal:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.07);
-            border-color: #cbd5e1;
-        }
-
-        /* Columna Izquierda: Retrato del Docente */
-        .tarjeta-docente-foto {
-            width: 190px;
-            min-width: 190px;
-            position: relative;
-            background-color: #334155;
-        }
-
-        .tarjeta-docente-foto img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-        .badge-instrumento-doc {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            right: 10px;
-            background-color: rgba(15, 23, 42, 0.9);
-            color: #f8fafc;
-            text-align: center;
-            font-size: 0.75rem;
-            font-weight: 700;
-            padding: 4px 8px;
-            border-radius: 4px;
-            letter-spacing: 0.3px;
-        }
-
-        /* Columna Derecha: Información Pedagógica */
-        .tarjeta-docente-contenido {
-            padding: 20px 24px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .docente-cabecera {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            flex-wrap: wrap;
-            margin-bottom: 6px;
-            gap: 10px;
-        }
-
-        .docente-cabecera h3 {
-            font-size: 1.3rem;
-            color: #0f172a;
-            font-weight: 700;
-        }
-
-        .docente-email {
-            font-size: 0.85rem;
-            color: #64748b;
-        }
-
-        .docente-especialidad {
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: #b93b2a;
-            margin-bottom: 12px;
-        }
-
-        /* Bloque de Trayectoria Pedagógica */
-        .trayectoria-box {
-            background-color: #fdfbf7;
-            border-left: 3px solid #d97706;
-            padding: 10px 14px;
-            margin-bottom: 12px;
-            border-radius: 0 4px 4px 0;
-        }
-
-        .trayectoria-box strong {
-            display: block;
-            font-size: 0.84rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #92400e;
-            margin-bottom: 4px;
-        }
-
-        .trayectoria-box p {
-            font-size: 0.9rem;
-            color: #451a03;
-            margin-bottom: 0;
-            line-height: 1.5;
-        }
-
-        .docente-bio {
-            font-size: 0.9rem;
-            color: #475569;
-            margin-bottom: 14px;
-            line-height: 1.55;
-        }
-
-        /* Talleres a Cargo */
-        .docente-talleres-vinculo {
-            background-color: #f8fafc;
-            border: 1px solid #f1f5f9;
-            padding: 10px 14px;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .docente-talleres-vinculo strong {
-            color: #1e293b;
-        }
-
-        .taller-chip {
-            background-color: #e2e8f0;
-            color: #1e293b;
-            text-decoration: none;
-            padding: 3px 8px;
-            border-radius: 3px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            transition: all 0.15s ease;
-        }
-
-        .taller-chip:hover {
-            background-color: #cbd5e1;
-            color: #0f172a;
-        }
-
-        /* Estado Vacío */
-        .alerta-vacio {
-            background-color: #fff;
-            border: 1px dashed #cbd5e1;
-            padding: 40px;
-            text-align: center;
-            border-radius: 6px;
-            color: #64748b;
-        }
-
-        /* Footer Clásico */
-        footer {
-            background-color: #0f172a;
-            color: #94a3b8;
-            padding: 30px 0;
-            margin-top: 50px;
-            font-size: 0.88rem;
-            border-top: 3px solid #b93b2a;
-        }
-
-        .footer-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .footer-content a {
-            color: #cbd5e1;
-            text-decoration: none;
-        }
-
-        .footer-content a:hover {
-            color: #ffffff;
-            text-decoration: underline;
+        @media (max-width: 650px) {
+            .malla-docentes-propia { grid-template-columns: 1fr !important; }
         }
     </style>
 </head>
 <body>
+    <!-- HEADER -->
+    <?php include 'header.php'; ?>
 
-    <!-- ENCABEZADO Y NAVEGACIÓN -->
-    <header>
-        <div class="contenedor header-content">
-            <div class="logo-box">
-                <h1>A TODO RITMO</h1>
-                <span>Escuela Popular de Música Comunitaria</span>
-            </div>
-            <nav>
-                <ul>
-                    <li><a href="index.php">Inicio</a></li>
-                    <li><a href="nosotros.php">Nosotros</a></li>
-                    <li><a href="talleres.php">Talleres</a></li>
-                    <li><a href="docentes.php" class="active">Docentes</a></li>
-                    <li><a href="inscripcion.php">Inscripción</a></li>
-                    <li><a href="contacto.php">Contacto</a></li>
-                </ul>
-            </nav>
-        </div>
-    </header>
+    <div style="text-align: center; max-width: 800px; margin: 60px auto 40px auto; padding: 0 20px; box-sizing: border-box;">
+        <span style="color: #24AB58; text-transform: uppercase; font-weight: 700; font-size: 14px; letter-spacing: 1px; display: block; margin-bottom: 8px;">
+            Equipo Pedagógico & Artístico
+        </span>
+        <h2 style="font-size: 38px; font-weight: 800; margin: 0 0 15px 0; color: #181818; letter-spacing: -0.5px;">
+            Nuestro Cuerpo Docente
+        </h2>
+        <p style="font-size: 16px; color: #6c757d; line-height: 1.6; margin: 0;">
+            Músicos profesionales y pedagogos graduados de conservatorios nacionales (Manuel de Falla, UNA, Castro) con amplia trayectoria escénica y vocación social.
+        </p>
+    </div>
 
-    <!-- CONTENEDOR PRINCIPAL (MAX-WIDTH: 1000PX) -->
-    <main class="contenedor">
+    <div class="malla-docentes-propia">
+        <?php if (!empty($docentes)): ?>
+            <?php foreach ($docentes as $prof): ?>
+                <div class="bloque-tarjeta-docente" id="docente-<?= (int)$prof['id'] ?>">
+                    <div class="caja-foto-docente">
+                        <img src="<?= htmlspecialchars($prof['imagen']) ?>" alt="<?= htmlspecialchars($prof['nombre'] . ' ' . $prof['apellido']) ?>">
+                        <span class="etiqueta-doc-instrumento"><?= htmlspecialchars($prof['instrumento_principal']) ?></span>
+                    </div>
 
-        <!-- Banner de Encabezado -->
-        <section class="hero-seccion">
-            <h2>Equipo Docente</h2>
-            <p>Músicos profesionales, arregladores y pedagogos con vasta experiencia en orquestas, escenarios y formación comunitaria.</p>
-        </section>
+                    <div class="cuerpo-tarjeta-docente">
+                        <h3><?= htmlspecialchars($prof['nombre'] . ' ' . $prof['apellido']) ?></h3>
+                        <p class="subtitulo-esp"><?= htmlspecialchars($prof['especialidad']) ?></p>
 
-        <!-- Bloque Institucional -->
-        <section class="bloque-intro">
-            <strong>Nuestra Vocación Pedagógica:</strong> En la Escuela de Música "A Todo Ritmo", los docentes no son meros instructores técnicos; son guías artísticos que acompañan la sensibilidad individual de cada estudiante, fomentando el aprendizaje libre de frustraciones y la integración en ensambles grupales.
-        </section>
+                        <p class="resumen-bio"><?= htmlspecialchars($prof['biografia']) ?></p>
 
-        <!-- LISTADO DE PROFESORES DESDE MYSQL -->
-        <section class="lista-docentes">
-            <?php if (!empty($docentes)): ?>
-                <?php foreach ($docentes as $prof): ?>
-                    <article class="tarjeta-docente-horizontal" id="docente-<?= $prof['id'] ?>">
-                        <!-- Retrato del Docente -->
-                        <div class="tarjeta-docente-foto">
-                            <img src="<?= htmlspecialchars($prof['foto_url'] ?? 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=400&q=80') ?>" alt="<?= htmlspecialchars($prof['nombre'] . ' ' . $prof['apellido']) ?>">
-                            <span class="badge-instrumento-doc"><?= htmlspecialchars($prof['instrumento_principal']) ?></span>
-                        </div>
-
-                        <!-- Información y Trayectoria Pedagógica -->
-                        <div class="tarjeta-docente-contenido">
-                            <div>
-                                <div class="docente-cabecera">
-                                    <h3><?= htmlspecialchars($prof['nombre'] . ' ' . $prof['apellido']) ?></h3>
-                                    <span class="docente-email"><?= htmlspecialchars($prof['email']) ?></span>
-                                </div>
-
-                                <div class="docente-especialidad">
-                                    <?= htmlspecialchars($prof['especialidad']) ?>
-                                </div>
-
-                                <!-- Trayectoria Pedagógica y Currículum (Requisito estricto) -->
-                                <div class="trayectoria-box">
-                                    <strong>Trayectoria Pedagógica y Formación:</strong>
-                                    <p><?= htmlspecialchars($prof['trayectoria_cv']) ?></p>
-                                </div>
-
-                                <!-- Reseña biográfica -->
-                                <p class="docente-bio">
-                                    <?= htmlspecialchars($prof['biografia']) ?>
-                                </p>
+                        <p class="tit-talleres">Talleres que dicta:</p>
+                        <?php foreach ($prof['talleres'] as $taller): ?>
+                            <div class="fila-taller-item">
+                                <span><?= htmlspecialchars($taller['nombre']) ?></span>
+                                <a href="<?= htmlspecialchars($taller['link']) ?>" class="btn-taller-comprar">Inscribirme</a>
                             </div>
+                        <?php endforeach; ?>
 
-                            <!-- Talleres a cargo del docente -->
-                            <?php if (!empty($talleresPorDocente[$prof['id']])): ?>
-                                <div class="docente-talleres-vinculo">
-                                    <strong>Talleres que coordina:</strong>
-                                    <?php foreach ($talleresPorDocente[$prof['id']] as $tallerDictado): ?>
-                                        <a href="talleres.php#taller-<?= $tallerDictado['id'] ?>" class="taller-chip">
-                                            <?= htmlspecialchars($tallerDictado['nombre']) ?>
-                                        </a>
-                                    <?php endforeach; ?>
+                        <details class="desplegable-cv-nat">
+                            <summary>
+                                <span class="tit-btn-cv">Ver CV & Trayectoria Académica</span>
+                            </summary>
+
+                            <div class="caja-interior-cv">
+                                <strong>Trayectoria y Formación:</strong>
+                                <p><?= htmlspecialchars($prof['trayectoria_cv']) ?></p>
+
+                                <div class="contacto-docente-bloque">
+                                    <div class="contacto-item">
+                                        <span style="margin-right: 8px;">✉</span>
+                                        <?= htmlspecialchars($prof['email']) ?>
+                                    </div>
+                                    <div class="contacto-item">
+                                        <span style="margin-right: 8px;">📞</span>
+                                        <?= htmlspecialchars($prof['telefono']) ?>
+                                    </div>
                                 </div>
-                            <?php endif; ?>
-                        </div>
-                    </article>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <div class="alerta-vacio">
-                    <h3>No se encontraron profesores registrados en la base de datos</h3>
-                    <p>Verifique que la tabla <code>docentes</code> esté creada y contenga registros activos.</p>
+                            </div>
+                        </details>
+                    </div>
                 </div>
-            <?php endif; ?>
-        </section>
-
-    </main>
-
-    <!-- PIE DE PÁGINA -->
-    <footer>
-        <div class="contenedor footer-content">
-            <div>
-                <strong>Escuela de Música "A Todo Ritmo"</strong> &copy; <?= date('Y'); ?>. Asociación Civil Sin Fines de Lucro.
+            <?php endforeach; ?>
+        <?php else: ?>
+            <div style="grid-column: span 3; text-align: center; background: #fff3cd; border: 1px solid #ffe69c; padding: 20px; border-radius: 10px;">
+                No se encontraron docentes cargados en este momento.
             </div>
-            <div>
-                <a href="nosotros.php">Nuestra Historia</a> &nbsp;|&nbsp;
-                <a href="talleres.php">Ver Talleres</a> &nbsp;|&nbsp;
-                <a href="inscripcion.php">Inscripciones Abiertas</a>
-            </div>
-        </div>
-    </footer>
+        <?php endif; ?>
+    </div>
 
+    <div class="seccion-final-cta">
+        <h3>¿Querés formarte con nuestro equipo docente?</h3>
+        <p>Todas las comisiones tienen vacantes limitadas para asegurar un seguimiento cercano.<br>¡Inscribite hoy y asegurá tu lugar para el ciclo 2026!</p>
+        <a href="inscripcion.php" class="btn-final-enlace">Comenzar Inscripción Online</a>
+    </div>
+
+    <?php include 'footer.php'; ?>
 </body>
 </html>

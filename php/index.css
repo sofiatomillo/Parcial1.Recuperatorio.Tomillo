@@ -1,0 +1,673 @@
+/* index.css - Diseño Institucional Centrado y Compacto "A Todo Ritmo" */
+@import url('https://fonts.googleapis.com/css2?family=Carter+One&family=Mukta:wght@300;400;500;600;700;800&display=swap');
+
+/* ==========================================================================
+   RESET Y ESTILOS BASE
+   ========================================================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Mukta', 'Segoe UI', Helvetica, Arial, sans-serif;
+    background-color: #FFFAE6;
+    color: #181818;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+}
+
+.banner-anuncio {
+    background-color: #24AB58;
+    color: #FFFAE6;
+    text-align: center;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+:root {
+    --brand-green: #1db954;
+    --brand-yellow: #f4c430;
+    --dark-bg: #121212;
+}
+
+/* ==========================================================================
+   ESTILOS BLINDADOS PARA EL HEADER UNIFICADO
+   ========================================================================== */
+#header-escuela {
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    display: block !important;
+    font-family: 'Segoe UI', Helvetica, Arial, sans-serif !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+}
+
+#header-escuela * {
+    box-sizing: border-box !important;
+    font-family: 'Segoe UI', Helvetica, Arial, sans-serif !important;
+}
+
+#header-escuela .top-bar {
+    background-color: #1db954 !important;
+    color: #ffffff !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 10px 30px !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.5px !important;
+}
+
+#header-escuela .navbar {
+    background-color: #121212 !important;
+    height: 74px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0 30px !important;
+    border-bottom: 5px solid #1db954 !important;
+    box-sizing: border-box !important;
+}
+
+#header-escuela .brand {
+    display: flex !important;
+    align-items: center !important;
+    align-self: center !important;
+    gap: 12px !important;
+    height: auto !important;
+    margin: 0 !important;
+    text-decoration: none !important;
+}
+
+#header-escuela .logo-icon {
+    background-color: var(--brand-yellow);
+    color: var(--dark-bg);
+    font-size: 1.4rem;
+    border-radius: 6px;
+    height: 46px !important;
+    min-height: 46px !important;
+    max-height: 46px !important;
+    width: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: normal !important;
+}
+
+#header-escuela .brand-text {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    height: 46px !important;
+}
+
+#header-escuela .brand-text h1 {
+    font-family: 'Carter One', cursive !important;
+    color: #f4c430 !important;
+    font-size: 1.4rem !important;
+    font-weight: normal !important;
+    text-transform: uppercase !important;
+    margin: 0 !important;
+    line-height: 1.1 !important;
+    letter-spacing: 0.5px !important;
+}
+
+#header-escuela .brand-text p {
+    font-family: 'Segoe UI', Helvetica, Arial, sans-serif !important;
+    color: #a7a7a7 !important;
+    font-size: 0.65rem !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
+    line-height: 1 !important;
+    letter-spacing: 1px !important;
+}
+
+#header-escuela .nav-links {
+    display: flex !important;
+    list-style: none !important;
+    gap: 20px !important;
+    align-items: center !important;
+    align-self: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+#header-escuela .nav-links li {
+    display: flex !important;
+    align-items: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+}
+
+#header-escuela .nav-links a {
+    color: #ffffff !important;
+    text-decoration: none !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    font-family: 'Segoe UI', Helvetica, Arial, sans-serif !important;
+    line-height: 1.3 !important;
+    padding: 6px 10px !important;
+    border-radius: 8px !important;
+    transition: color 0.2s ease, background-color 0.2s ease !important;
+    transform: translateY(1px) !important;
+}
+
+#header-escuela .nav-links a:hover,
+#header-escuela .nav-links a.active {
+    color: #f4c430 !important;
+    background-color: rgba(29, 185, 84, 0.16) !important;
+}
+
+#header-escuela .nav-actions {
+    display: flex !important;
+    align-items: center !important;
+    align-self: center !important;
+    gap: 15px !important;
+    margin: 0 !important;
+}
+
+#header-escuela .btn-sql {
+    background-color: #282828 !important;
+    color: #f4c430 !important;
+    border: 1px solid #404040 !important;
+    padding: 8px 16px !important;
+    border-radius: 4px !important;
+    text-decoration: none !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    transition: background-color 0.2s !important;
+    transform: translateY(1px) !important;
+}
+
+#header-escuela .btn-sql:hover {
+    background-color: #3e3e3e !important;
+}
+
+#header-escuela .btn-enroll {
+    background-color: #1db954 !important;
+    color: #ffffff !important;
+    border: none !important;
+    padding: 9px 22px !important;
+    border-radius: 25px !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+    font-size: 0.85rem !important;
+    box-shadow: 0 4px 12px rgba(29, 185, 84, 0.2) !important;
+    transition: transform 0.1s, background-color 0.2s !important;
+    transform: translateY(1px) !important;
+}
+
+#header-escuela .btn-enroll:hover {
+    background-color: #1ed760 !important;
+}
+
+@media (max-width: 992px) {
+    #header-escuela .top-bar {
+        flex-direction: column !important;
+        gap: 4px !important;
+        text-align: center !important;
+    }
+    #header-escuela .navbar {
+        flex-direction: column !important;
+        height: auto !important;
+        gap: 15px !important;
+        padding: 15px !important;
+    }
+    #header-escuela .nav-links {
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        gap: 10px !important;
+    }
+}
+
+/* ==========================================================================
+   CONTENEDORES Y BLOQUES DE LA HOME / SECCIONES
+   ========================================================================== */
+.logo h1 {
+    font-family: 'Carter One', cursive;
+    color: #F3D84F;
+    margin: 0;
+    font-size: 26px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    box-sizing: border-box;
+}
+
+/* TRAMAS DE PUNTOS DEL MOODBOARD ORIGINAL */
+.pattern-dots-dark {
+    background-image: radial-gradient(rgba(24, 24, 24, 0.15) 1.5px, transparent 1.5px);
+    background-size: 16px 16px;
+}
+
+.pattern-dots-yellow {
+    background-image: radial-gradient(rgba(243, 216, 79, 0.35) 1.5px, transparent 1.5px);
+    background-size: 20px 20px;
+}
+
+/* Hero Banner Inicial Acotado a 1160px */
+.hero {
+    background-color: #181818;
+    color: #FFFAE6;
+    border: 4px solid #F3D84F;
+    border-radius: 32px;
+    padding: 65px 40px;
+    text-align: center;
+    margin: 0 auto 50px auto;
+    max-width: 1160px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+    box-sizing: border-box;
+}
+
+.hero h2 {
+    font-family: 'Carter One', cursive;
+    color: #FFFAE6;
+    font-size: 44px;
+    margin-top: 0;
+    margin-bottom: 15px;
+    line-height: 1.2;
+}
+
+.hero p {
+    max-width: 800px;
+    margin: 0 auto 35px auto;
+    font-size: 17px;
+    color: #dddddd;
+    line-height: 1.6;
+}
+
+.flex-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    border: 2px solid #181818;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 14px;
+    transition: transform 0.2s;
+    box-sizing: border-box;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+}
+
+.btn-y {
+    background-color: #F3D84F;
+    color: #181818;
+    font-family: 'Carter One', cursive;
+    font-size: 15px;
+    box-shadow: 3px 3px 0px #24AB58;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 2px solid #24AB58;
+    color: #FFFAE6;
+    font-family: 'Carter One', cursive;
+}
+
+.btn-outline:hover {
+    background-color: #24AB58;
+}
+
+h2.seccion-titulo {
+    font-family: 'Carter One', cursive;
+    text-align: center;
+    font-size: 32px;
+    color: #181818;
+    margin: 0;
+}
+
+.sub-titulo {
+    text-align: center;
+    color: #444;
+    margin-bottom: 45px;
+    font-size: 16px;
+}
+
+/* Fila Horizontal Centrada para las Tarjetas */
+.grid-4-horizontal {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-bottom: 60px;
+    flex-wrap: wrap;
+}
+
+/* Tarjetas Estilo Cómic con Bordes Robustos de 265px */
+.card-comic,
+.taller-mini-card {
+    background: #FFFDF5;
+    border: 2px solid #181818;
+    border-radius: 24px;
+    padding: 24px;
+    box-shadow: 4px 4px 0px #181818;
+    box-sizing: border-box;
+    width: 265px;
+    max-width: 265px;
+    min-height: 380px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.card-comic h3 {
+    font-family: 'Carter One', cursive;
+    margin: 0 0 10px 0;
+    font-size: 18px;
+    color: #181818;
+}
+
+.card-comic p {
+    margin: 0;
+    font-size: 13.5px;
+    color: #444;
+    line-height: 1.45;
+}
+
+.icon-box {
+    width: 44px;
+    height: 44px;
+    background-color: #24AB58;
+    color: white;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin-bottom: 14px;
+    font-weight: bold;
+}
+
+.icon-box.yellow {
+    background-color: #F3D84F;
+    color: #181818;
+}
+
+/* Contenedores Estrictos para las Fotos de los Talleres */
+.taller-img-container {
+    width: 100%;
+    height: 130px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 2px solid #181818;
+    margin-bottom: 10px;
+}
+
+.taller-img-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.taller-badge {
+    background: #F3D84F;
+    color: #181818;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-family: 'Carter One', cursive;
+    font-size: 11px;
+    display: inline-block;
+    margin-bottom: 8px;
+    width: fit-content;
+    border: 1px solid #181818;
+}
+
+.taller-mini-body {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.taller-mini-body h4 {
+    font-family: 'Carter One', cursive;
+    font-size: 15px;
+    margin: 0 0 8px 0;
+    line-height: 1.3;
+    color: #181818;
+}
+
+.taller-mini-body p {
+    margin: 0;
+    font-size: 12.5px;
+    color: #555;
+    line-height: 1.45;
+}
+
+.taller-mini-footer {
+    border-top: 1px solid #eee;
+    padding: 12px 0 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #FFFDF5;
+    font-size: 13px;
+    margin-top: 10px;
+}
+
+/* Banner del Evento de Primavera Centrado */
+.evento-banner-destacado {
+    background: linear-gradient(135deg, #181818, #222);
+    border: 4px solid #24AB58;
+    border-radius: 32px;
+    padding: 45px;
+    color: #FFFAE6;
+    margin: 0 auto 60px auto;
+    max-width: 1160px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 35px;
+    box-sizing: border-box;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.evento-info-side {
+    flex: 1;
+}
+
+.evento-info-side h3 {
+    font-family: 'Carter One', cursive;
+    font-size: 30px;
+    color: #F3D84F;
+    margin: 0 0 12px 0;
+    text-align: left;
+}
+
+.evento-ticket-side {
+    background: #181818;
+    border: 2px solid #444;
+    border-radius: 24px;
+    padding: 25px;
+    text-align: center;
+    min-width: 240px;
+    box-sizing: border-box;
+    box-shadow: 3px 3px 0px #24AB58;
+}
+
+.event-chips {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+}
+
+.chip {
+    background: #2b2b2b;
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #ccc;
+    font-weight: 600;
+    border: 1px solid #444;
+}
+
+/* Reseñas Horizontales Grandes */
+.flex-resenas {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-bottom: 65px;
+    flex-wrap: wrap;
+}
+
+.card-resena {
+    background: #FFFDF5;
+    border: 2px solid #181818;
+    border-radius: 24px;
+    padding: 25px;
+    box-shadow: 4px 4px 0px #181818;
+    width: 360px;
+    max-width: 360px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-sizing: border-box;
+}
+
+.stars {
+    color: #F3D84F;
+    font-size: 18px;
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+}
+
+/* Caja de Invitación de Matrícula Robusta */
+.cta-final-box {
+    background-color: #F3D84F;
+    border: 4px solid #181818;
+    border-radius: 32px;
+    padding: 60px 45px;
+    text-align: center;
+    box-shadow: 6px 6px 0px #181818;
+    box-sizing: border-box;
+    max-width: 1000px;
+    margin: 40px auto 0 auto;
+}
+
+.cta-final-box h2 {
+    font-family: 'Carter One', cursive;
+    font-size: 34px !important;
+    margin: 0 0 15px 0 !important;
+    color: #181818;
+}
+
+.cta-final-box p {
+    font-size: 16px !important;
+    max-width: 700px;
+    margin: 0 auto 30px auto !important;
+    color: #181818;
+    line-height: 1.5;
+}
+
+/* ==========================================================================
+   ESTILOS BLINDADOS PARA EL FOOTER UNIFICADO
+   ========================================================================== */
+#footer-escuela {
+    background-color: #181818 !important;
+    color: #FFFAE6 !important;
+    padding: 45px 20px !important;
+    border-top: 4px solid #24AB58 !important;
+    margin-top: 80px !important;
+    width: 100% !important;
+    display: block !important;
+    box-sizing: border-box !important;
+}
+
+#footer-escuela * {
+    box-sizing: border-box !important;
+}
+
+#footer-escuela .footer-grid {
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    display: grid !important;
+    grid-template-columns: 1.3fr 1fr 1.1fr 1.2fr !important;
+    gap: 40px !important;
+    padding-bottom: 10px !important;
+}
+
+#footer-escuela .footer-col h4 {
+    font-family: 'Carter One', cursive !important;
+    color: #F3D84F !important;
+    margin-bottom: 15px !important;
+    font-size: 17px !important;
+    font-weight: normal !important;
+}
+
+#footer-escuela .footer-col p {
+    color: #ccc !important;
+    font-size: 13.5px !important;
+    line-height: 1.6 !important;
+    margin-bottom: 10px !important;
+}
+
+#footer-escuela .footer-col ul {
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+#footer-escuela .footer-col ul li {
+    margin-bottom: 8px !important;
+    list-style: none !important;
+}
+
+#footer-escuela .footer-col ul li a {
+    color: #FFF !important;
+    text-decoration: none !important;
+    font-size: 13.5px !important;
+    font-weight: 500 !important;
+}
+
+#footer-escuela .footer-col ul li a:hover {
+    color: #F3D84F !important;
+}
+
+@media (max-width: 992px) {
+    #footer-escuela .footer-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    .evento-banner-destacado {
+        flex-direction: column;
+        text-align: center;
+    }
+    .evento-info-side h3 {
+        text-align: center;
+    }
+}
+
+@media (max-width: 650px) {
+    #footer-escuela .footer-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
