@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@theme {
+  --font-carter: 'Carter One', cursive, system-ui, sans-serif;
+  --font-mukta: 'Mukta', system-ui, sans-serif;
+
+  --color-brand-yellow: #F3D84F;
+  --color-brand-green: #24AB58;
+  --color-brand-dark: #181818;
+  --color-brand-cream: #FFFAE6;
+  --color-brand-cream-card: #FFFDF5;
+}
+
+@layer base {
+  body {
+    font-family: 'Mukta', system-ui, sans-serif;
+    background-color: #FFFAE6;
+    color: #181818;
+  }
+
+  h1, h2, h3, .font-carter {
+    font-family: 'Carter One', cursive, system-ui, sans-serif;
+  }
+}
+
+/* Texturas de puntos y armonía rítmica solicitadas en el Moodboard */
+.pattern-dots-dark {
+  background-image: radial-gradient(rgba(24, 24, 24, 0.15) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.pattern-dots-green {
+  background-image: radial-gradient(rgba(36, 171, 88, 0.25) 1.2px, transparent 1.2px);
+  background-size: 18px 18px;
+}
+
+.pattern-dots-yellow {
+  background-image: radial-gradient(rgba(243, 216, 79, 0.35) 1.5px, transparent 1.5px);
+  background-size: 20px 20px;
+}

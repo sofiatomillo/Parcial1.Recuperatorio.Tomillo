@@ -1,0 +1,6 @@
+{
+  "name": "Escuela de Música A Todo Ritmo",
+  "description": "Sitio web oficial de la Escuela de Música A Todo Ritmo: talleres de instrumentos, inscripción online, eventos y cuerpo docente con propuesta accesible e inclusiva.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
