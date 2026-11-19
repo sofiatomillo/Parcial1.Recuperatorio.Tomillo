@@ -6,6 +6,7 @@ $cfg = obtenerConfigPagina($pdo);
 $historia_titulo = $cfg['nosotros_historia_titulo'] ?? 'De un Taller Barrial a una Red de Formación Musical Abierta';
 $historia_p1     = $cfg['nosotros_historia_p1'] ?? '"A Todo Ritmo" nació en 2018 impulsada por un grupo de músicos y docentes egresados de conservatorios públicos que veían cómo cientos de chicos, jóvenes y adultos quedaban afuera de la formación musical por no conseguir vacantes en instituciones saturadas o por no poder costear un instrumento propio.';
 $historia_p2     = $cfg['nosotros_historia_p2'] ?? 'Comenzamos con una sala prestada en San Telmo y guitarras donadas. Hoy contamos con dos sedes activas, más de 200 alumnos regulares, un Banco Solidario con más de 60 instrumentos en comodato y un cuerpo docente apasionado por la enseñanza popular.';
+$historia_imagen = $cfg['nosotros_historia_imagen'] ?? 'img/microfono.jpg';
 
 try {
     $sedes_db = $pdo->query("SELECT * FROM sedes ORDER BY id ASC")->fetchAll(PDO::FETCH_ASSOC);
@@ -140,7 +141,7 @@ if (empty($sedes_db)) {
 
                 <div style="position: relative; box-sizing: border-box; width: 100%;">
                     <div style="width: 100%; height: 340px; border-radius: 24px; overflow: hidden; border: 4px solid #181818; box-shadow: 4px 4px 0px #181818;">
-                        <img src="img/microfono.jpg" alt="Micrófono original de la Escuela de Música" style="width: 100%; height: 100%; object-fit: cover;">
+                        <img src="<?= htmlspecialchars($historia_imagen) ?>" alt="Historia de la Escuela de Música A Todo Ritmo" style="width: 100%; height: 100%; object-fit: cover;">
                     </div>
                     <div style="position: absolute; bottom: -20px; left: -20px; background-color: #F3D84F; border: 3px solid #181818; border-radius: 16px; padding: 15px; box-shadow: 4px 4px 0px #181818; max-width: 280px; box-sizing: border-box;">
                         <p style="font-family: 'Carter One', cursive; font-size: 13px; color: #181818; margin: 0; line-height: 1.4;">

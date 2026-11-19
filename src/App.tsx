@@ -1,5 +1,15 @@
 import { useState } from 'react';
-import { SeccionActiva, Taller, Evento } from './types';
+import {
+  SeccionActiva,
+  Taller,
+  Evento,
+  Docente,
+  Sede,
+  Resena,
+  PreguntaFrecuente,
+  ContenidoPagina,
+  AdminUser
+} from './types';
 import { DataService } from './services/dataService';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
@@ -10,6 +20,7 @@ import { EventosSection } from './components/EventosSection';
 import { DocentesSection } from './components/DocentesSection';
 import { InscripcionSection } from './components/InscripcionSection';
 import { ConsultasSection } from './components/ConsultasSection';
+import { AdminSection } from './components/AdminSection';
 import { SqlExplorerModal } from './components/SqlExplorerModal';
 import { Terminal, Database } from 'lucide-react';
 
@@ -17,10 +28,12 @@ export default function App() {
   const [seccionActiva, setSeccionActiva] = useState<SeccionActiva>('home');
   const [talleres, setTalleres] = useState<Taller[]>(DataService.getTalleres());
   const [eventos, setEventos] = useState<Evento[]>(DataService.getEventos());
-  const docentes = DataService.getDocentes();
-  const sedes = DataService.getSedes();
-  const resenas = DataService.getResenas();
-  const preguntasFrecuentes = DataService.getPreguntasFrecuentes();
+  const [docentes, setDocentes] = useState<Docente[]>(DataService.getDocentes());
+  const [sedes, setSedes] = useState<Sede[]>(DataService.getSedes());
+  const [resenas, setResenas] = useState<Resena[]>(DataService.getResenas());
+  const [preguntasFrecuentes, setPreguntasFrecuentes] = useState<PreguntaFrecuente[]>(DataService.getPreguntasFrecuentes());
+  const [contenidoPagina, setContenidoPagina] = useState<ContenidoPagina>(DataService.getContenidoPagina());
+  const [adminActual, setAdminActual] = useState<Omit<AdminUser, 'password'> | null>(DataService.getAdminActual());
 
   // Estados para acciones cruzadas entre vistas
   const [tallerPreseleccionadoId, setTallerPreseleccionadoId] = useState<number | null>(null);
@@ -38,6 +51,16 @@ export default function App() {
 
   const actualizarEventos = () => {
     setEventos(DataService.getEventos());
+  };
+
+  const refrescarTodo = () => {
+    setTalleres(DataService.getTalleres());
+    setEventos(DataService.getEventos());
+    setDocentes(DataService.getDocentes());
+    setSedes(DataService.getSedes());
+    setResenas(DataService.getResenas());
+    setPreguntasFrecuentes(DataService.getPreguntasFrecuentes());
+    setContenidoPagina(DataService.getContenidoPagina());
   };
 
   const notificarSqlEjecutado = (sql: string) => {
@@ -76,6 +99,8 @@ export default function App() {
         seccionActiva={seccionActiva}
         onCambiarSeccion={setSeccionActiva}
         onAbrirSqlModal={() => setSqlModalAbierto(true)}
+        contenidoPagina={contenidoPagina}
+        adminActual={adminActual}
       />
 
       {/* CONTENIDO PRINCIPAL SEGÚN SECCIÓN */}
@@ -85,6 +110,7 @@ export default function App() {
             talleres={talleres}
             eventos={eventos}
             resenas={resenas}
+            contenidoPagina={contenidoPagina}
             onCambiarSeccion={setSeccionActiva}
             onSeleccionarTallerParaInscripcion={handleSeleccionarTallerParaInscripcion}
             onSeleccionarEventoParaEntrada={handleSeleccionarEventoParaEntrada}
@@ -95,6 +121,7 @@ export default function App() {
           <NosotrosSection
             sedes={sedes}
             resenas={resenas}
+            contenidoPagina={contenidoPagina}
             onCambiarSeccion={setSeccionActiva}
           />
         )}
@@ -142,7 +169,30 @@ export default function App() {
         {seccionActiva === 'consultas' && (
           <ConsultasSection
             preguntasFrecuentes={preguntasFrecuentes}
+            contenidoPagina={contenidoPagina}
+            sedes={sedes}
             onNotificarSqlEjecutado={notificarSqlEjecutado}
+          />
+        )}
+
+        {seccionActiva === 'admin' && (
+          <AdminSection
+            adminActual={adminActual}
+            onLoginSuccess={(adm) => setAdminActual(adm)}
+            onLogout={() => {
+              DataService.cerrarSesionAdmin();
+              setAdminActual(null);
+            }}
+            docentes={docentes}
+            talleres={talleres}
+            eventos={eventos}
+            sedes={sedes}
+            resenas={resenas}
+            preguntasFrecuentes={preguntasFrecuentes}
+            contenidoPagina={contenidoPagina}
+            onRefrescarTodo={refrescarTodo}
+            onNotificarSqlEjecutado={notificarSqlEjecutado}
+            onCambiarSeccion={setSeccionActiva}
           />
         )}
       </main>

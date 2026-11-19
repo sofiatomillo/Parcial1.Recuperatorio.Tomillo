@@ -1,11 +1,12 @@
 import React from 'react';
-import { SeccionActiva, Taller, Evento, Resena } from '../types';
+import { SeccionActiva, Taller, Evento, Resena, ContenidoPagina } from '../types';
 import { Music, Sparkles, HeartHandshake, ShieldCheck, Users, Calendar, ArrowRight, CheckCircle2, Ticket, Star, BookOpen } from 'lucide-react';
 
 interface HomeSectionProps {
   talleres: Taller[];
   eventos: Evento[];
   resenas: Resena[];
+  contenidoPagina: ContenidoPagina;
   onCambiarSeccion: (seccion: SeccionActiva) => void;
   onSeleccionarTallerParaInscripcion: (tallerId: number) => void;
   onSeleccionarEventoParaEntrada: (evento: Evento) => void;
@@ -15,6 +16,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
   talleres,
   eventos,
   resenas,
+  contenidoPagina,
   onCambiarSeccion,
   onSeleccionarTallerParaInscripcion,
   onSeleccionarEventoParaEntrada
@@ -33,16 +35,16 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
         <div className="relative max-w-5xl mx-auto px-6 py-16 sm:py-24 text-center space-y-6">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#24AB58]/30 border border-[#24AB58] text-[#F3D84F] text-xs sm:text-sm font-bold tracking-wider uppercase">
             <Sparkles className="w-4 h-4 text-[#F3D84F]" />
-            <span>Inscripciones Ciclo Lectivo 2026</span>
+            <span>{contenidoPagina.heroEtiqueta}</span>
           </div>
 
           <h1 className="font-carter text-3xl sm:text-5xl lg:text-6xl text-[#FFFAE6] tracking-tight leading-tight">
-            Sentí la música, <br />
-            <span className="text-[#F3D84F] inline-block mt-1">descubrí tu ritmo.</span>
+            {contenidoPagina.heroTitulo1} <br />
+            <span className="text-[#F3D84F] inline-block mt-1">{contenidoPagina.heroTitulo2}</span>
           </h1>
 
           <p className="max-w-2xl mx-auto text-base sm:text-lg text-neutral-300 font-sans leading-relaxed">
-            Una escuela de música inclusiva en el corazón del barrio. Clases de guitarra, violín, flauta, batería, piano y canto para todas las edades. <strong className="text-[#F3D84F]">¿No tenés instrumento? Te lo prestamos nosotros.</strong>
+            {contenidoPagina.heroDescripcion}
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
@@ -64,6 +66,19 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
               <span>Explorar Talleres 2026</span>
             </button>
           </div>
+
+          {contenidoPagina.heroImagen && (
+            <div className="max-w-3xl mx-auto pt-4">
+              <div className="rounded-2xl overflow-hidden border-2 border-[#F3D84F] shadow-xl">
+                <img
+                  src={contenidoPagina.heroImagen}
+                  alt="Escuela de Música A Todo Ritmo"
+                  className="w-full max-h-72 object-cover"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+            </div>
+          )}
 
           {/* Micro badges de confianza */}
           <div className="pt-8 border-t border-neutral-800 grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-semibold text-neutral-300">

@@ -93,6 +93,17 @@ export const Footer: React.FC<FooterProps> = ({ onCambiarSeccion, onAbrirSqlModa
                   Preguntas Frecuentes & Consultas
                 </button>
               </li>
+              <li>
+                <button
+                  onClick={() => {
+                    onCambiarSeccion('admin');
+                    scrollToTop();
+                  }}
+                  className="text-[#F3D84F] font-bold hover:underline"
+                >
+                  Acceso Administrador
+                </button>
+              </li>
             </ul>
           </div>
 
@@ -152,6 +163,15 @@ export const Footer: React.FC<FooterProps> = ({ onCambiarSeccion, onAbrirSqlModa
         <div className="pt-8 border-t border-neutral-800 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-neutral-400">
           <p>© {new Date().getFullYear()} Escuela de Música "A Todo Ritmo". Todos los derechos reservados.</p>
           <div className="flex items-center gap-4">
+            <button
+              onClick={() => {
+                onCambiarSeccion('admin');
+                scrollToTop();
+              }}
+              className="text-[#F3D84F] hover:underline cursor-pointer font-semibold"
+            >
+              Ingresar como Administrador
+            </button>
             <button
               onClick={onAbrirSqlModal}
               className="hover:text-[#F3D84F] underline cursor-pointer"

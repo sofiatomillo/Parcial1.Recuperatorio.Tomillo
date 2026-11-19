@@ -1,16 +1,17 @@
 import React from 'react';
-import { SeccionActiva, Sede, Resena } from '../types';
-import { Music, MapPin, Users, Heart, Star, Phone, Mail, Clock, Bus, Train, ArrowRight } from 'lucide-react';
+import { SeccionActiva, Sede, Resena, ContenidoPagina } from '../types';
+import { MapPin, Users, Heart, Phone, Mail, Clock, Bus, Train, ArrowRight } from 'lucide-react';
 
 interface NosotrosSectionProps {
   sedes: Sede[];
   resenas: Resena[];
+  contenidoPagina: ContenidoPagina;
   onCambiarSeccion: (seccion: SeccionActiva) => void;
 }
 
 export const NosotrosSection: React.FC<NosotrosSectionProps> = ({
   sedes,
-  resenas,
+  contenidoPagina,
   onCambiarSeccion
 }) => {
   return (
@@ -21,10 +22,10 @@ export const NosotrosSection: React.FC<NosotrosSectionProps> = ({
           Quiénes Somos
         </span>
         <h1 className="font-carter text-3xl sm:text-5xl text-[#181818]">
-          Escuela de Música "A Todo Ritmo"
+          {contenidoPagina.nosotrosTitulo}
         </h1>
         <p className="text-sm sm:text-base text-neutral-700 leading-relaxed font-sans">
-          Nacimos con una convicción innegociable: la música no es un privilegio de pocos, sino un lenguaje colectivo, transformador y comunitario.
+          {contenidoPagina.nosotrosSubtitulo}
         </p>
       </div>
 
@@ -37,15 +38,15 @@ export const NosotrosSection: React.FC<NosotrosSectionProps> = ({
           </div>
 
           <h2 className="font-carter text-2xl sm:text-3xl text-[#181818] leading-tight">
-            De un taller barrial a una red de formación musical abierta
+            {contenidoPagina.nosotrosHistoriaTitulo}
           </h2>
 
           <p className="text-sm text-neutral-700 leading-relaxed">
-            "A Todo Ritmo" nació en 2018 impulsada por un grupo de músicos y docentes egresados de conservatorios públicos que veían cómo cientos de chicos, jóvenes y adultos quedaban afuera de la formación musical por no conseguir vacantes en instituciones saturadas o por no poder costear un instrumento propio.
+            {contenidoPagina.nosotrosHistoriaP1}
           </p>
 
           <p className="text-sm text-neutral-700 leading-relaxed">
-            Comenzamos con una sala prestada en San Telmo y cinco guitarras donadas. Hoy contamos con dos sedes activas, más de 200 alumnos regulares, un Banco Solidario con más de 60 instrumentos en comodato y un cuerpo docente apasionado por la enseñanza popular.
+            {contenidoPagina.nosotrosHistoriaP2}
           </p>
 
           <div className="grid grid-cols-3 gap-4 pt-2">
@@ -67,7 +68,7 @@ export const NosotrosSection: React.FC<NosotrosSectionProps> = ({
         <div className="relative">
           <div className="rounded-3xl overflow-hidden border-4 border-[#181818] shadow-2xl">
             <img
-              src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=800&q=80"
+              src={contenidoPagina.nosotrosHistoriaImagen}
               alt="Alumnos de A Todo Ritmo"
               className="w-full h-96 object-cover"
               referrerPolicy="no-referrer"
@@ -75,7 +76,7 @@ export const NosotrosSection: React.FC<NosotrosSectionProps> = ({
           </div>
           <div className="absolute -bottom-6 -left-6 bg-[#F3D84F] border-2 border-[#181818] rounded-2xl p-4 shadow-lg max-w-xs">
             <p className="font-carter text-xs text-[#181818]">
-              "Aprender un instrumento te da una voz que las palabras no alcanzan."
+              {contenidoPagina.nosotrosCita}
             </p>
           </div>
         </div>

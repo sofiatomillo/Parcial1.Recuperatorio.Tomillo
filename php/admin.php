@@ -13,6 +13,33 @@ if (!in_array($tab, $tabs_validos, true)) {
 $mensaje_ok = '';
 $mensaje_error = '';
 
+/**
+ * Sube una imagen al directorio img/uploads/ de forma segura y retorna su ruta relativa.
+ */
+function subirImagenAdmin(array $fileInfo, string $fallbackRuta): string {
+    if (($fileInfo['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+        return $fallbackRuta;
+    }
+    $extPermitidas = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+    $ext = strtolower(pathinfo($fileInfo['name'] ?? '', PATHINFO_EXTENSION));
+    if (!in_array($ext, $extPermitidas, true)) {
+        throw new RuntimeException('Formato de imagen no permitido. Usá JPG, PNG, WEBP o GIF.');
+    }
+    if (($fileInfo['size'] ?? 0) > 5 * 1024 * 1024) {
+        throw new RuntimeException('La imagen supera el máximo permitido de 5 MB.');
+    }
+    $dirUploads = __DIR__ . '/img/uploads';
+    if (!is_dir($dirUploads)) {
+        @mkdir($dirUploads, 0755, true);
+    }
+    $nombreArchivo = 'atr_' . date('Ymd_His') . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+    $destino = $dirUploads . '/' . $nombreArchivo;
+    if (!move_uploaded_file($fileInfo['tmp_name'], $destino)) {
+        throw new RuntimeException('No se pudo guardar la imagen subida en img/uploads/.');
+    }
+    return 'img/uploads/' . $nombreArchivo;
+}
+
 // =========================================================================
 // PROCESAMIENTO DE ACCIONES POST DEL ADMINISTRADOR
 // =========================================================================
@@ -24,8 +51,80 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mensaje_error = 'Error de validación de seguridad (CSRF). Recargá la página e intentá nuevamente.';
     } else {
         try {
-            // 1. GESTIÓN DE INSCRIPCIONES
-            if ($accion === 'actualizar_estado_inscripcion') {
+            // 1. GESTIÓN DE ALUMNOS / INSCRIPCIONES (CARGAR / MODIFICAR / ESTADO / ELIMINAR)
+            if ($accion === 'guardar_alumno') {
+                $tab = 'inscripciones';
+                $id            = intval($_POST['inscripcion_id'] ?? 0);
+                $taller_id     = intval($_POST['taller_id'] ?? 1);
+                $sede_id       = intval($_POST['sede_id'] ?? 1);
+                $nombre        = trim($_POST['nombre'] ?? '');
+                $apellido      = trim($_POST['apellido'] ?? '');
+                $email         = filter_var(trim($_POST['email'] ?? ''), FILTER_SANITIZE_EMAIL);
+                $telefono      = trim($_POST['telefono'] ?? '');
+                $edad          = max(5, min(110, intval($_POST['edad'] ?? 18)));
+                $genero        = trim($_POST['genero'] ?? 'NB');
+                $modalidad     = trim($_POST['modalidad'] ?? 'Presencial');
+                $prestamo      = isset($_POST['necesita_prestamo_instrumento']) ? 1 : 0;
+                $propio        = isset($_POST['posee_instrumento_propio']) ? 1 : 0;
+                $horario       = trim($_POST['horario_seleccionado'] ?? '');
+                $comentarios   = trim($_POST['comentarios'] ?? '');
+                $estado        = $_POST['estado'] ?? 'Confirmada';
+                $estados_ok    = ['Pendiente de Confirmación', 'Confirmada', 'En Lista de Espera'];
+                if (!in_array($estado, $estados_ok, true)) {
+                    $estado = 'Confirmada';
+                }
+
+                if ($horario === '') {
+                    $stHor = $pdo->prepare("SELECT dia_semana, horario FROM talleres WHERE id = ?");
+                    $stHor->execute([$taller_id]);
+                    $tRow = $stHor->fetch(PDO::FETCH_ASSOC);
+                    $horario = $tRow ? ($tRow['dia_semana'] . ' (' . $tRow['horario'] . ')') : 'A confirmar';
+                }
+
+                if ($id > 0) {
+                    $pdo->beginTransaction();
+                    $stOld = $pdo->prepare("SELECT taller_id FROM inscripciones WHERE id = ?");
+                    $stOld->execute([$id]);
+                    $oldRow = $stOld->fetch(PDO::FETCH_ASSOC);
+
+                    $sqlUpd = "UPDATE inscripciones
+                               SET taller_id=?, sede_id=?, nombre=?, apellido=?, email=?, telefono=?, edad=?, genero=?,
+                                   modalidad=?, necesita_prestamo_instrumento=?, posee_instrumento_propio=?,
+                                   horario_seleccionado=?, comentarios=?, estado=?
+                               WHERE id=?";
+                    $pdo->prepare($sqlUpd)->execute([
+                        $taller_id, $sede_id, $nombre, $apellido, $email, $telefono, $edad, $genero,
+                        $modalidad, $prestamo, $propio, $horario, $comentarios, $estado, $id
+                    ]);
+
+                    if ($oldRow && (int)$oldRow['taller_id'] !== $taller_id) {
+                        $pdo->prepare("UPDATE talleres SET vacantes_disponibles = LEAST(vacantes_totales, vacantes_disponibles + 1) WHERE id = ?")
+                            ->execute([(int)$oldRow['taller_id']]);
+                        $pdo->prepare("UPDATE talleres SET vacantes_disponibles = GREATEST(vacantes_disponibles - 1, 0) WHERE id = ?")
+                            ->execute([$taller_id]);
+                    }
+                    $pdo->commit();
+                    $mensaje_ok = "Datos del alumno \"$nombre $apellido\" modificados correctamente.";
+                } else {
+                    $pdo->beginTransaction();
+                    $codigo = 'ATR-' . date('Y') . '-' . strtoupper(substr(bin2hex(random_bytes(3)), 0, 5));
+                    $sqlIns = "INSERT INTO inscripciones
+                               (codigo_inscripcion, taller_id, nombre, apellido, email, telefono, edad, genero,
+                                modalidad, necesita_prestamo_instrumento, posee_instrumento_propio, sede_id,
+                                horario_seleccionado, comentarios, estado)
+                               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    $pdo->prepare($sqlIns)->execute([
+                        $codigo, $taller_id, $nombre, $apellido, $email, $telefono, $edad, $genero,
+                        $modalidad, $prestamo, $propio, $sede_id, $horario, $comentarios, $estado
+                    ]);
+                    if ($estado === 'Confirmada') {
+                        $pdo->prepare("UPDATE talleres SET vacantes_disponibles = GREATEST(vacantes_disponibles - 1, 0) WHERE id = ?")
+                            ->execute([$taller_id]);
+                    }
+                    $pdo->commit();
+                    $mensaje_ok = "Alumno \"$nombre $apellido\" cargado correctamente (Código: $codigo).";
+                }
+            } elseif ($accion === 'actualizar_estado_inscripcion') {
                 $tab = 'inscripciones';
                 $id = intval($_POST['inscripcion_id'] ?? 0);
                 $nuevo_estado = $_POST['estado'] ?? 'Confirmada';
@@ -68,6 +167,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $email                 = trim($_POST['email'] ?? '');
                 $telefono              = trim($_POST['telefono'] ?? '');
                 $imagen                = trim($_POST['imagen'] ?? 'img/default-docente.jpg');
+                if (isset($_FILES['archivo_imagen'])) {
+                    $imagen = subirImagenAdmin($_FILES['archivo_imagen'], $imagen);
+                }
                 $activo                = isset($_POST['activo']) ? 1 : 0;
 
                 if ($id > 0) {
@@ -113,6 +215,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $requisitos   = trim($_POST['requisitos'] ?? '');
                 $prestamo     = intval($_POST['instrumentos_prestamo_disponibles'] ?? 0);
                 $imagen_url   = trim($_POST['imagen_url'] ?? 'img/guitarra.jpg');
+                if (isset($_FILES['archivo_imagen'])) {
+                    $imagen_url = subirImagenAdmin($_FILES['archivo_imagen'], $imagen_url);
+                }
                 $destacado    = isset($_POST['destacado']) ? 1 : 0;
 
                 if ($id > 0) {
@@ -149,6 +254,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $ent_disp    = intval($_POST['entradas_disponibles'] ?? 50);
                 $estado      = $_POST['estado'] ?? 'proximo';
                 $imagen_url  = trim($_POST['imagen_url'] ?? 'muestra-primavera.jpg');
+                if (isset($_FILES['archivo_imagen'])) {
+                    $imagen_url = subirImagenAdmin($_FILES['archivo_imagen'], $imagen_url);
+                }
 
                 if ($id > 0) {
                     $sql = "UPDATE eventos SET titulo=?, tipo=?, badge_color=?, fecha=?, hora=?, lugar=?, descripcion=?, repertorio=?, precio_entrada=?, capacidad_total=?, entradas_disponibles=?, estado=?, imagen_url=? WHERE id=?";
@@ -167,15 +275,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $mensaje_ok = 'Evento eliminado correctamente.';
                 }
 
-            // 5. MODIFICAR INFORMACIÓN DE LA PÁGINA (TEXTOS, SEDES, RESEÑAS, FAQ, CONSULTAS)
+            // 5. MODIFICAR INFORMACIÓN DE LA PÁGINA (TEXTOS, IMÁGENES, SEDES, RESEÑAS, FAQ, CONSULTAS)
             } elseif ($accion === 'guardar_config_pagina') {
                 $tab = 'contenido';
                 $claves = $_POST['config'] ?? [];
                 $stmtCfg = $pdo->prepare("UPDATE configuracion_pagina SET valor = ? WHERE clave = ?");
                 foreach ($claves as $clave => $valor) {
-                    $stmtCfg->execute([trim((string)$valor), (string)$clave]);
+                    $valorFinal = trim((string)$valor);
+                    if (isset($_FILES['config_img']['error'][$clave]) && $_FILES['config_img']['error'][$clave] === UPLOAD_ERR_OK) {
+                        $fileArr = [
+                            'name'     => $_FILES['config_img']['name'][$clave],
+                            'type'     => $_FILES['config_img']['type'][$clave],
+                            'tmp_name' => $_FILES['config_img']['tmp_name'][$clave],
+                            'error'    => $_FILES['config_img']['error'][$clave],
+                            'size'     => $_FILES['config_img']['size'][$clave],
+                        ];
+                        $valorFinal = subirImagenAdmin($fileArr, $valorFinal);
+                    }
+                    $stmtCfg->execute([$valorFinal, (string)$clave]);
                 }
-                $mensaje_ok = 'Textos institucionales de la página actualizados correctamente.';
+                $mensaje_ok = 'Textos e imágenes de la página actualizados correctamente.';
             } elseif ($accion === 'guardar_sede') {
                 $tab = 'contenido';
                 $id         = intval($_POST['sede_id'] ?? 0);
@@ -274,8 +393,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $mensaje_ok = 'Estado de administrador actualizado.';
                 }
             }
-        } catch (PDOException $e) {
-            $mensaje_error = 'Error de base de datos: ' . $e->getMessage();
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            $mensaje_error = 'Error al procesar la operación: ' . $e->getMessage();
         }
     }
 }
@@ -338,6 +460,13 @@ if ($tab === 'inscripciones') {
 }
 
 // Edición pre-cargada según query param
+$alumno_editar = null;
+if ($tab === 'inscripciones' && !empty($_GET['editar_alumno'])) {
+    $st = $pdo->prepare("SELECT * FROM inscripciones WHERE id = ?");
+    $st->execute([intval($_GET['editar_alumno'])]);
+    $alumno_editar = $st->fetch(PDO::FETCH_ASSOC);
+}
+
 $docente_editar = null;
 if ($tab === 'docentes' && !empty($_GET['editar_docente'])) {
     $st = $pdo->prepare("SELECT * FROM docentes WHERE id = ?");
@@ -548,9 +677,120 @@ $csrf_token = generarCsrfToken();
         <?php endif; ?>
 
         <!-- ===============================================================
-             TAB 1: VISUALIZAR ALUMNOS INSCRIPTOS
+             TAB 1: CARGAR, VISUALIZAR Y MODIFICAR ALUMNOS INSCRIPTOS
              =============================================================== -->
         <?php if ($tab === 'inscripciones'): ?>
+            <section class="panel-box">
+                <h3><?= $alumno_editar ? 'Modificar Alumno #' . (int)$alumno_editar['id'] . ' (' . htmlspecialchars($alumno_editar['codigo_inscripcion']) . ')' : 'Cargar Nuevo Alumno Inscripto' ?></h3>
+                <form method="POST" action="admin.php?tab=inscripciones">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>">
+                    <input type="hidden" name="accion" value="guardar_alumno">
+                    <input type="hidden" name="inscripcion_id" value="<?= (int)($alumno_editar['id'] ?? 0) ?>">
+
+                    <div class="form-grid-3">
+                        <div class="campo">
+                            <label>Nombre *</label>
+                            <input type="text" name="nombre" class="input-admin" required value="<?= htmlspecialchars($alumno_editar['nombre'] ?? '') ?>">
+                        </div>
+                        <div class="campo">
+                            <label>Apellido *</label>
+                            <input type="text" name="apellido" class="input-admin" required value="<?= htmlspecialchars($alumno_editar['apellido'] ?? '') ?>">
+                        </div>
+                        <div class="campo">
+                            <label>Correo Electrónico *</label>
+                            <input type="email" name="email" class="input-admin" required value="<?= htmlspecialchars($alumno_editar['email'] ?? '') ?>">
+                        </div>
+                    </div>
+
+                    <div class="form-grid-3">
+                        <div class="campo">
+                            <label>Teléfono *</label>
+                            <input type="text" name="telefono" class="input-admin" required value="<?= htmlspecialchars($alumno_editar['telefono'] ?? '') ?>">
+                        </div>
+                        <div class="campo">
+                            <label>Edad *</label>
+                            <input type="number" min="5" max="110" name="edad" class="input-admin" required value="<?= htmlspecialchars((string)($alumno_editar['edad'] ?? '18')) ?>">
+                        </div>
+                        <div class="campo">
+                            <label>Género</label>
+                            <select name="genero" class="input-admin">
+                                <?php foreach (['Fem', 'Masc', 'NB', 'Otro', 'Prefiero no decir'] as $g): ?>
+                                    <option value="<?= $g ?>" <?= (($alumno_editar['genero'] ?? 'NB') === $g) ? 'selected' : '' ?>><?= $g ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-grid-3">
+                        <div class="campo">
+                            <label>Taller Asignado *</label>
+                            <select name="taller_id" class="input-admin" required>
+                                <?php foreach ($talleres_lista as $tl): ?>
+                                    <option value="<?= (int)$tl['id'] ?>" <?= ((int)($alumno_editar['taller_id'] ?? 0) === (int)$tl['id']) ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($tl['nombre']) ?> (<?= htmlspecialchars($tl['dia_semana']) ?>)
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="campo">
+                            <label>Sede *</label>
+                            <select name="sede_id" class="input-admin">
+                                <?php foreach ($sedes_lista as $s): ?>
+                                    <option value="<?= (int)$s['id'] ?>" <?= ((int)($alumno_editar['sede_id'] ?? 1) === (int)$s['id']) ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($s['nombre']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="campo">
+                            <label>Estado de Inscripción *</label>
+                            <select name="estado" class="input-admin">
+                                <?php foreach (['Confirmada', 'Pendiente de Confirmación', 'En Lista de Espera'] as $est): ?>
+                                    <option value="<?= $est ?>" <?= (($alumno_editar['estado'] ?? 'Confirmada') === $est) ? 'selected' : '' ?>><?= $est ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-grid-3" style="align-items:center;">
+                        <div class="campo">
+                            <label>Modalidad</label>
+                            <select name="modalidad" class="input-admin">
+                                <?php foreach (['Presencial', 'Online', 'Híbrida'] as $mod): ?>
+                                    <option value="<?= $mod ?>" <?= (($alumno_editar['modalidad'] ?? 'Presencial') === $mod) ? 'selected' : '' ?>><?= $mod ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="campo">
+                            <label>Horario Seleccionado (opcional)</label>
+                            <input type="text" name="horario_seleccionado" class="input-admin" value="<?= htmlspecialchars($alumno_editar['horario_seleccionado'] ?? '') ?>" placeholder="Se autocompleta si queda vacío">
+                        </div>
+                        <div class="campo" style="padding-top:12px;">
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin-bottom:4px;">
+                                <input type="checkbox" name="necesita_prestamo_instrumento" value="1" <?= !empty($alumno_editar['necesita_prestamo_instrumento']) ? 'checked' : '' ?>>
+                                Solicita préstamo solidario
+                            </label>
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                                <input type="checkbox" name="posee_instrumento_propio" value="1" <?= !empty($alumno_editar['posee_instrumento_propio']) ? 'checked' : '' ?>>
+                                Posee instrumento propio
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="campo">
+                        <label>Comentarios / Observaciones</label>
+                        <input type="text" name="comentarios" class="input-admin" value="<?= htmlspecialchars($alumno_editar['comentarios'] ?? '') ?>" placeholder="Notas pedagógicas o disponibilidad">
+                    </div>
+
+                    <div style="display:flex; gap:10px;">
+                        <button type="submit" class="btn-guardar"><?= $alumno_editar ? 'Guardar Cambios del Alumno' : 'Cargar Alumno en MySQL' ?></button>
+                        <?php if ($alumno_editar): ?>
+                            <a href="admin.php?tab=inscripciones" class="btn-amarillo" style="display:flex;align-items:center;">Cancelar Edición</a>
+                        <?php endif; ?>
+                    </div>
+                </form>
+            </section>
+
             <section class="panel-box">
                 <h3>Alumnos Inscriptos</h3>
                 <form method="GET" action="admin.php" style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px;">
@@ -626,7 +866,8 @@ $csrf_token = generarCsrfToken();
                                                 <button type="submit" class="btn-amarillo">OK</button>
                                             </form>
                                         </td>
-                                        <td>
+                                        <td style="display:flex; gap:6px; flex-wrap:wrap;">
+                                            <a href="admin.php?tab=inscripciones&editar_alumno=<?= (int)$ins['id'] ?>" class="btn-amarillo">Editar</a>
                                             <form method="POST" action="admin.php?tab=inscripciones" onsubmit="return confirm('¿Eliminar esta inscripción? Se restaurará 1 vacante al taller.');">
                                                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>">
                                                 <input type="hidden" name="accion" value="eliminar_inscripcion">
@@ -651,7 +892,7 @@ $csrf_token = generarCsrfToken();
         <?php if ($tab === 'docentes'): ?>
             <section class="panel-box">
                 <h3><?= $docente_editar ? 'Modificar Docente #' . (int)$docente_editar['id'] : 'Cargar Nuevo Docente' ?></h3>
-                <form method="POST" action="admin.php?tab=docentes">
+                <form method="POST" action="admin.php?tab=docentes" enctype="multipart/form-data">
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>">
                     <input type="hidden" name="accion" value="guardar_docente">
                     <input type="hidden" name="docente_id" value="<?= (int)($docente_editar['id'] ?? 0) ?>">
@@ -697,10 +938,14 @@ $csrf_token = generarCsrfToken();
                         </div>
                     </div>
 
-                    <div class="form-grid-2" style="align-items:center;">
+                    <div class="form-grid-3" style="align-items:center;">
                         <div class="campo">
                             <label>Ruta o URL de Imagen</label>
                             <input type="text" name="imagen" class="input-admin" value="<?= htmlspecialchars($docente_editar['imagen'] ?? ($docente_editar['foto_url'] ?? 'img/default-docente.jpg')) ?>">
+                        </div>
+                        <div class="campo">
+                            <label>O subir nueva imagen desde tu equipo</label>
+                            <input type="file" name="archivo_imagen" accept="image/*" class="input-admin">
                         </div>
                         <div class="campo" style="padding-top:16px;">
                             <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
@@ -764,7 +1009,7 @@ $csrf_token = generarCsrfToken();
         <?php if ($tab === 'talleres'): ?>
             <section class="panel-box">
                 <h3><?= $taller_editar ? 'Modificar Taller #' . (int)$taller_editar['id'] : 'Cargar Nuevo Taller' ?></h3>
-                <form method="POST" action="admin.php?tab=talleres">
+                <form method="POST" action="admin.php?tab=talleres" enctype="multipart/form-data">
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>">
                     <input type="hidden" name="accion" value="guardar_taller">
                     <input type="hidden" name="taller_id" value="<?= (int)($taller_editar['id'] ?? 0) ?>">
@@ -863,10 +1108,14 @@ $csrf_token = generarCsrfToken();
                         </div>
                     </div>
 
-                    <div class="form-grid-2" style="align-items:center;">
+                    <div class="form-grid-3" style="align-items:center;">
                         <div class="campo">
                             <label>Imagen (ruta local o URL)</label>
                             <input type="text" name="imagen_url" class="input-admin" value="<?= htmlspecialchars($taller_editar['imagen_url'] ?? 'img/guitarra.jpg') ?>">
+                        </div>
+                        <div class="campo">
+                            <label>O subir nueva imagen desde tu equipo</label>
+                            <input type="file" name="archivo_imagen" accept="image/*" class="input-admin">
                         </div>
                         <div class="campo" style="padding-top:16px;">
                             <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
@@ -932,7 +1181,7 @@ $csrf_token = generarCsrfToken();
         <?php if ($tab === 'eventos'): ?>
             <section class="panel-box">
                 <h3><?= $evento_editar ? 'Modificar Evento #' . (int)$evento_editar['id'] : 'Cargar Nuevo Evento' ?></h3>
-                <form method="POST" action="admin.php?tab=eventos">
+                <form method="POST" action="admin.php?tab=eventos" enctype="multipart/form-data">
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>">
                     <input type="hidden" name="accion" value="guardar_evento">
                     <input type="hidden" name="evento_id" value="<?= (int)($evento_editar['id'] ?? 0) ?>">
@@ -1008,9 +1257,15 @@ $csrf_token = generarCsrfToken();
                         </div>
                     </div>
 
-                    <div class="campo">
-                        <label>Imagen (archivo en img/ o URL)</label>
-                        <input type="text" name="imagen_url" class="input-admin" value="<?= htmlspecialchars($evento_editar['imagen_url'] ?? 'muestra-primavera.jpg') ?>">
+                    <div class="form-grid-2">
+                        <div class="campo">
+                            <label>Imagen (archivo en img/ o URL)</label>
+                            <input type="text" name="imagen_url" class="input-admin" value="<?= htmlspecialchars($evento_editar['imagen_url'] ?? 'muestra-primavera.jpg') ?>">
+                        </div>
+                        <div class="campo">
+                            <label>O subir nueva imagen desde tu equipo</label>
+                            <input type="file" name="archivo_imagen" accept="image/*" class="input-admin">
+                        </div>
                     </div>
 
                     <div style="display:flex; gap:10px;">
@@ -1065,23 +1320,39 @@ $csrf_token = generarCsrfToken();
              TAB 5: MODIFICAR INFORMACIÓN CARGADA EN LA PÁGINA
              =============================================================== -->
         <?php if ($tab === 'contenido'): ?>
-            <!-- A. Textos Institucionales -->
+            <!-- A. Textos e Imágenes Institucionales -->
             <section class="panel-box">
-                <h3>Textos Generales del Sitio (Home, Barra Superior, Nosotros, Contacto)</h3>
-                <form method="POST" action="admin.php?tab=contenido">
+                <h3>Textos e Imágenes del Sitio (Home, Barra Superior, Nosotros, Contacto)</h3>
+                <form method="POST" action="admin.php?tab=contenido" enctype="multipart/form-data">
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>">
                     <input type="hidden" name="accion" value="guardar_config_pagina">
-                    <?php foreach ($config_lista as $cfg): ?>
-                        <div class="campo">
+                    <?php foreach ($config_lista as $cfg):
+                        $es_imagen = str_ends_with($cfg['clave'], '_imagen');
+                    ?>
+                        <div class="campo" style="<?= $es_imagen ? 'background:#fffdf1; border:1px solid #e5e7eb; padding:12px; border-radius:12px;' : '' ?>">
                             <label>[<?= htmlspecialchars($cfg['seccion']) ?>] <?= htmlspecialchars($cfg['titulo']) ?></label>
-                            <?php if (strlen($cfg['valor']) > 90): ?>
+                            <?php if ($es_imagen): ?>
+                                <div class="form-grid-2" style="align-items:center;">
+                                    <div>
+                                        <input type="text" name="config[<?= htmlspecialchars($cfg['clave']) ?>]" class="input-admin" value="<?= htmlspecialchars($cfg['valor']) ?>" placeholder="Ruta o URL de imagen">
+                                        <input type="file" name="config_img[<?= htmlspecialchars($cfg['clave']) ?>]" accept="image/*" class="input-admin" style="margin-top:6px;">
+                                    </div>
+                                    <div>
+                                        <?php if (!empty($cfg['valor'])): ?>
+                                            <img src="<?= htmlspecialchars($cfg['valor']) ?>" alt="Vista previa" style="max-height:90px; border-radius:10px; border:2px solid #181818;">
+                                        <?php else: ?>
+                                            <small style="color:#666;">Sin imagen configurada (opcional).</small>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            <?php elseif (strlen($cfg['valor']) > 90): ?>
                                 <textarea name="config[<?= htmlspecialchars($cfg['clave']) ?>]" class="input-admin" rows="2"><?= htmlspecialchars($cfg['valor']) ?></textarea>
                             <?php else: ?>
                                 <input type="text" name="config[<?= htmlspecialchars($cfg['clave']) ?>]" class="input-admin" value="<?= htmlspecialchars($cfg['valor']) ?>">
                             <?php endif; ?>
                         </div>
                     <?php endforeach; ?>
-                    <button type="submit" class="btn-guardar">Guardar Textos de la Página</button>
+                    <button type="submit" class="btn-guardar">Guardar Textos e Imágenes de la Página</button>
                 </form>
             </section>
 

@@ -238,9 +238,11 @@ INSERT INTO configuracion_pagina (clave, titulo, valor, seccion) VALUES
 ('hero_titulo_1', 'Título Hero Línea 1 (Home)', 'Sentí la música,', 'Inicio'),
 ('hero_titulo_2', 'Título Hero Línea 2 (Destacado Amarillo)', 'descubrí tu ritmo.', 'Inicio'),
 ('hero_descripcion', 'Bajada del Hero (Home)', 'Una escuela de música inclusiva en el corazón del barrio. Clases de guitarra, violín, flauta, batería, piano y canto para todas las edades. ¿No tenés instrumento? Te lo prestamos nosotros.', 'Inicio'),
+('hero_imagen', 'Imagen Destacada del Hero (Home, opcional)', '', 'Inicio'),
 ('nosotros_historia_titulo', 'Título Historia Institucional (Nosotros)', 'De un Taller Barrial a una Red de Formación Musical Abierta', 'Nosotros'),
 ('nosotros_historia_p1', 'Historia Párrafo 1 (Nosotros)', '"A Todo Ritmo" nació en 2018 impulsada por un grupo de músicos y docentes egresados de conservatorios públicos que veían cómo cientos de chicos, jóvenes y adultos quedaban afuera de la formación musical por no conseguir vacantes en instituciones saturadas o por no poder costear un instrumento propio.', 'Nosotros'),
 ('nosotros_historia_p2', 'Historia Párrafo 2 (Nosotros)', 'Comenzamos con una sala prestada en San Telmo y guitarras donadas. Hoy contamos con dos sedes activas, más de 200 alumnos regulares, un Banco Solidario con más de 60 instrumentos en comodato y un cuerpo docente apasionado por la enseñanza popular.', 'Nosotros'),
+('nosotros_historia_imagen', 'Imagen Principal Historia (Nosotros)', 'img/microfono.jpg', 'Nosotros'),
 ('contacto_whatsapp', 'WhatsApp de Admisiones', '(011) 15-5829-1022 (Lunes a Viernes de 10 a 20 hs)', 'Contacto'),
 ('contacto_email', 'Email Institucional', 'consultas@atodoritmo.edu.ar', 'Contacto')
 ON DUPLICATE KEY UPDATE titulo = VALUES(titulo);

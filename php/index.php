@@ -7,6 +7,7 @@ $hero_etiqueta    = $cfg['hero_etiqueta']    ?? '✨ Inscripciones Ciclo Lectivo
 $hero_titulo_1    = $cfg['hero_titulo_1']    ?? 'Sentí la música,';
 $hero_titulo_2    = $cfg['hero_titulo_2']    ?? 'descubrí tu ritmo.';
 $hero_descripcion = $cfg['hero_descripcion'] ?? 'Una escuela de música inclusiva en el corazón del barrio. Clases de guitarra, violín, flauta, batería, piano y canto para todas las edades. ¿No tenés instrumento? Te lo prestamos nosotros.';
+$hero_imagen      = trim($cfg['hero_imagen'] ?? '');
 
 try {
     $sql_talleres = "SELECT * FROM talleres WHERE destacado = 1 ORDER BY id ASC LIMIT 4";
@@ -82,6 +83,11 @@ if (empty($lista_resenas)) {
                 <a href="inscripcion.php" class="btn btn-y" style="text-decoration:none;">¡Quiero Inscribirme!</a>
                 <a href="talleres.php" class="btn btn-outline" style="text-decoration:none;">Explorar Talleres 2026</a>
             </div>
+            <?php if (!empty($hero_imagen)): ?>
+                <div style="margin:26px auto 0 auto; max-width:760px; border-radius:20px; overflow:hidden; border:3px solid #F3D84F; box-shadow:0 10px 25px rgba(0,0,0,0.4);">
+                    <img src="<?= htmlspecialchars($hero_imagen) ?>" alt="Escuela de Música A Todo Ritmo" style="width:100%; max-height:280px; object-fit:cover; display:block;">
+                </div>
+            <?php endif; ?>
         </section>
 
         <!-- SECCIÓN FILOSOFÍA -->

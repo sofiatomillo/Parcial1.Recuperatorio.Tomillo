@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
-import { PreguntaFrecuente, Consulta } from '../types';
+import { PreguntaFrecuente, ContenidoPagina, Sede } from '../types';
 import { DataService } from '../services/dataService';
-import { HelpCircle, Send, CheckCircle2, ChevronDown, ChevronUp, MessageSquare, Phone, Mail, Clock, MapPin, Sparkles } from 'lucide-react';
+import { Send, CheckCircle2, ChevronDown, ChevronUp, Phone, Mail, MapPin } from 'lucide-react';
 
 interface ConsultasSectionProps {
   preguntasFrecuentes: PreguntaFrecuente[];
+  contenidoPagina: ContenidoPagina;
+  sedes: Sede[];
   onNotificarSqlEjecutado: (sql: string) => void;
 }
 
 export const ConsultasSection: React.FC<ConsultasSectionProps> = ({
   preguntasFrecuentes,
+  contenidoPagina,
+  sedes,
   onNotificarSqlEjecutado
 }) => {
   // Estado del formulario de consulta
@@ -161,7 +165,7 @@ export const ConsultasSection: React.FC<ConsultasSectionProps> = ({
               <Phone className="w-4 h-4 text-[#F3D84F] shrink-0 mt-0.5" />
               <div>
                 <strong className="text-white block">WhatsApp de Admisiones:</strong>
-                (011) 15-5829-1022 (Lunes a Viernes de 10 a 20 hs)
+                {contenidoPagina.contactoWhatsapp}
               </div>
             </div>
 
@@ -169,25 +173,19 @@ export const ConsultasSection: React.FC<ConsultasSectionProps> = ({
               <Mail className="w-4 h-4 text-[#24AB58] shrink-0 mt-0.5" />
               <div>
                 <strong className="text-white block">Correo Electrónico:</strong>
-                consultas@atodoritmo.edu.ar
+                {contenidoPagina.contactoEmail}
               </div>
             </div>
 
-            <div className="flex items-start gap-3 p-3 bg-neutral-900 rounded-xl border border-neutral-800">
-              <MapPin className="w-4 h-4 text-[#F3D84F] shrink-0 mt-0.5" />
-              <div>
-                <strong className="text-white block">Sede San Telmo:</strong>
-                Defensa 842, CABA (Lun a Vie 14 a 21 hs | Sáb 09:30 a 19 hs)
+            {sedes.map((sede, idx) => (
+              <div key={sede.id} className="flex items-start gap-3 p-3 bg-neutral-900 rounded-xl border border-neutral-800">
+                <MapPin className={`w-4 h-4 shrink-0 mt-0.5 ${idx % 2 === 0 ? 'text-[#F3D84F]' : 'text-[#24AB58]'}`} />
+                <div>
+                  <strong className="text-white block">{sede.nombre}:</strong>
+                  {sede.direccion}, {sede.barrio} ({sede.horariosAtencion})
+                </div>
               </div>
-            </div>
-
-            <div className="flex items-start gap-3 p-3 bg-neutral-900 rounded-xl border border-neutral-800">
-              <MapPin className="w-4 h-4 text-[#24AB58] shrink-0 mt-0.5" />
-              <div>
-                <strong className="text-white block">Sede Almagro:</strong>
-                Av. Corrientes 4120, CABA (Lun a Vie 15 a 20:30 hs)
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 

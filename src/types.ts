@@ -142,6 +142,36 @@ export interface Sede {
   subte: string;
 }
 
+export interface AdminUser {
+  id: number;
+  usuario: string;
+  nombreCompleto: string;
+  email: string;
+  password?: string;
+  rol: 'superadmin' | 'admin';
+  activo: boolean;
+  ultimoAcceso: string | null;
+}
+
+export interface ContenidoPagina {
+  bannerSuperiorIzq: string;
+  bannerSuperiorDer: string;
+  heroEtiqueta: string;
+  heroTitulo1: string;
+  heroTitulo2: string;
+  heroDescripcion: string;
+  heroImagen: string;
+  nosotrosTitulo: string;
+  nosotrosSubtitulo: string;
+  nosotrosHistoriaTitulo: string;
+  nosotrosHistoriaP1: string;
+  nosotrosHistoriaP2: string;
+  nosotrosHistoriaImagen: string;
+  nosotrosCita: string;
+  contactoWhatsapp: string;
+  contactoEmail: string;
+}
+
 export type SeccionActiva = 
   | 'home' 
   | 'nosotros' 
@@ -149,4 +179,5 @@ export type SeccionActiva =
   | 'eventos' 
   | 'docentes' 
   | 'inscripcion' 
-  | 'consultas';
+  | 'consultas'
+  | 'admin';

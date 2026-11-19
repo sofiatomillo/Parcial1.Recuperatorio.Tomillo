@@ -1,17 +1,21 @@
 import React, { useState } from 'react';
-import { SeccionActiva } from '../types';
-import { Music, Menu, X, Database, Calendar, Users, BookOpen, HelpCircle, UserCheck } from 'lucide-react';
+import { SeccionActiva, ContenidoPagina, AdminUser } from '../types';
+import { Music, Menu, X, Database, Calendar, Users, BookOpen, HelpCircle, UserCheck, Shield } from 'lucide-react';
 
 interface NavbarProps {
   seccionActiva: SeccionActiva;
   onCambiarSeccion: (seccion: SeccionActiva) => void;
   onAbrirSqlModal: () => void;
+  contenidoPagina: ContenidoPagina;
+  adminActual: Omit<AdminUser, 'password'> | null;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   seccionActiva,
   onCambiarSeccion,
-  onAbrirSqlModal
+  onAbrirSqlModal,
+  contenidoPagina,
+  adminActual
 }) => {
   const [menuMovilAbierto, setMenuMovilAbierto] = useState(false);
 
@@ -38,23 +42,23 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-1">
           <div className="flex items-center gap-2">
             <span className="inline-block w-2 h-2 rounded-full bg-[#F3D84F] animate-pulse"></span>
-            <span>Inscripciones 2026 Abiertas • Préstamo gratuito de instrumentos disponible</span>
+            <span>{contenidoPagina.bannerSuperiorIzq}</span>
           </div>
           <div className="flex items-center gap-4 text-xs">
-            <span>Sedes: San Telmo & Almagro</span>
+            <span>{contenidoPagina.bannerSuperiorDer}</span>
             <span className="hidden md:inline">|</span>
-            <span className="hidden md:inline">WhatsApp: (011) 15-5829-1022</span>
+            <span className="hidden md:inline">WhatsApp: {contenidoPagina.contactoWhatsapp.split('(')[1] ? `(${contenidoPagina.contactoWhatsapp.split('(')[1]}` : contenidoPagina.contactoWhatsapp}</span>
           </div>
         </div>
       </div>
 
       {/* Barra de navegación principal */}
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           {/* Logo y Nombre del caso */}
           <button
             onClick={() => handleNavegar('home')}
-            className="flex items-center gap-3 group text-left focus:outline-none"
+            className="flex items-center gap-3 group text-left focus:outline-none shrink-0"
             id="btn-logo-home"
           >
             <div className="w-11 h-11 rounded-xl bg-[#F3D84F] text-[#181818] flex items-center justify-center font-bold shadow-md transform group-hover:rotate-6 transition-transform">
@@ -71,7 +75,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
 
           {/* Menú para pantallas medianas/grandes */}
-          <div className="hidden lg:flex items-center space-x-1">
+          <div className="hidden xl:flex items-center space-x-1">
             {enlaces.map((enlace) => {
               const estaActivo = seccionActiva === enlace.id;
               return (
@@ -79,7 +83,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   key={enlace.id}
                   id={`nav-link-${enlace.id}`}
                   onClick={() => handleNavegar(enlace.id)}
-                  className={`px-3.5 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 ${
+                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 ${
                     estaActivo
                       ? 'bg-[#F3D84F] text-[#181818] shadow-sm font-bold'
                       : 'text-[#FFFAE6] hover:bg-[#24AB58]/30 hover:text-[#F3D84F]'
@@ -92,7 +96,24 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Botones de acción derecha */}
-          <div className="hidden sm:flex items-center gap-2.5">
+          <div className="hidden sm:flex items-center gap-2 shrink-0">
+            {/* Botón Ingresar como Administrador */}
+            <button
+              onClick={() => handleNavegar('admin')}
+              id="btn-nav-admin"
+              title="Acceso para Administradores"
+              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg border transition-colors ${
+                seccionActiva === 'admin'
+                  ? 'bg-[#F3D84F] text-[#181818] border-[#F3D84F]'
+                  : adminActual
+                    ? 'bg-[#24AB58]/25 border-[#24AB58] text-[#F3D84F] hover:bg-[#24AB58] hover:text-white'
+                    : 'border-neutral-600 text-[#FFFAE6] hover:border-[#F3D84F] hover:text-[#F3D84F]'
+              }`}
+            >
+              <Shield className="w-3.5 h-3.5" />
+              <span>{adminActual ? 'Panel Admin' : 'Ingresar como Admin'}</span>
+            </button>
+
             {/* Botón Ver Consultas SQL / Lógica de Base de Datos */}
             <button
               onClick={onAbrirSqlModal}
@@ -115,11 +136,19 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Botón hamburguesa móvil */}
-          <div className="lg:hidden flex items-center gap-2">
+          <div className="xl:hidden flex items-center gap-2">
+            <button
+              onClick={() => handleNavegar('admin')}
+              id="btn-nav-admin-mobile"
+              className="sm:hidden p-2 text-xs font-bold rounded-md bg-[#F3D84F] text-[#181818]"
+              title="Ingresar como Admin"
+            >
+              <Shield className="w-4 h-4" />
+            </button>
             <button
               onClick={onAbrirSqlModal}
               id="btn-nav-sql-modal-mobile"
-              className="p-2 text-xs font-bold rounded-md bg-[#24AB58]/30 text-[#F3D84F]"
+              className="sm:hidden p-2 text-xs font-bold rounded-md bg-[#24AB58]/30 text-[#F3D84F]"
               title="Lógica SQL"
             >
               <Database className="w-4 h-4" />
@@ -137,7 +166,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Menú desplegable móvil */}
         {menuMovilAbierto && (
-          <div className="lg:hidden mt-3 pt-3 border-t border-neutral-700 space-y-1 pb-2 animate-fadeIn">
+          <div className="xl:hidden mt-3 pt-3 border-t border-neutral-700 space-y-1 pb-2 animate-fadeIn">
             {enlaces.map((enlace) => {
               const estaActivo = seccionActiva === enlace.id;
               return (
@@ -156,6 +185,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </button>
               );
             })}
+            <button
+              onClick={() => handleNavegar('admin')}
+              className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-bold flex items-center gap-3 ${
+                seccionActiva === 'admin'
+                  ? 'bg-[#F3D84F] text-[#181818]'
+                  : 'text-[#F3D84F] hover:bg-neutral-800'
+              }`}
+            >
+              <Shield className="w-4 h-4" />
+              <span>{adminActual ? 'Panel de Administración' : 'Ingresar como Administrador'}</span>
+            </button>
             <div className="pt-2">
               <button
                 onClick={() => handleNavegar('inscripcion')}

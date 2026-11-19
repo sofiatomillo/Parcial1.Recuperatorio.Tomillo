@@ -31,8 +31,8 @@ $es_admin_logueado = adminLogueado();
             <li><a href="consultas.php" class="<?= $pagina_actual === 'consultas.php' ? 'active' : '' ?>">Consultas</a></li>
         </ul>
         <div class="nav-actions">
-            <a href="<?= $es_admin_logueado ? 'admin.php' : 'login.php' ?>" class="btn-sql" title="Acceso Administrador">
-                <?= $es_admin_logueado ? '⚙ Panel Admin' : '🔐 Admin' ?>
+            <a href="<?= $es_admin_logueado ? 'admin.php' : 'login.php' ?>" class="btn-sql" title="Ingresar como Administrador">
+                <?= $es_admin_logueado ? '⚙ Panel Admin' : '🔐 Ingresar como Admin' ?>
             </a>
             <a href="sql.php" class="btn-sql">📋 SQL</a>
             <a href="inscripcion.php" class="btn-enroll">¡Inscribirme!</a>
